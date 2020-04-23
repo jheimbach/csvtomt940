@@ -16,9 +16,11 @@ func usage(programName string) string {
 }
 
 func main() {
+	// if no file is given, return usage message
 	if len(os.Args) < 2 {
 		log.Fatalf(usage(os.Args[0]))
 	}
+	// get csv filename from arguments and open file
 	csvFileName := os.Args[1]
 	csvFile, err := os.Open(csvFileName)
 	if err != nil {
@@ -26,21 +28,24 @@ func main() {
 	}
 	defer csvFile.Close()
 
+	// convert to utf8 because ing-diba encodes in ISO8859-1
 	b := bufio.NewReader(charmap.ISO8859_1.NewDecoder().Reader(csvFile))
-	var meta = make([]string, 0, 14)
-	for i := 0; i < 14; i++ {
-		line, err := b.ReadString('\n')
-		if err != nil {
-			log.Fatalf("read file line error: %v", err)
-		}
-		if line != "\n" {
-			meta = append(meta, line)
-		}
-	}
-	blz, accountNumber := getAccountNumber(meta)
-	fmt.Println(blz)
-	fmt.Println(accountNumber)
 
+	// extract the first 14 lines from the reader, thats the meta infos
+	meta, err := extractMetaFields(b)
+	if err != nil {
+		log.Fatalf("could not read meta fields: %v", err)
+	}
+
+	// extract banknumber and accountnumber from meta fields
+	bankNumber, accountNumber := getAccountNumber(meta)
+
+	sTransactions := &swiftTransactions{
+		accountNumber: accountNumber,
+		bankNumber:    bankNumber,
+	}
+
+	// read rest of the file as csv
 	cr := csv.NewReader(b)
 	cr.Comma = ';'
 
@@ -48,9 +53,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("could not read transactions from csv %v", err)
 	}
-	fmt.Println(transactions[:5])
+	// remove first line and reverse the order
 	transactions = cleanUpTransactions(transactions)
 
+	// create transaction structs
 	var ta = make([]*transaction, 0, len(transactions))
 	for i, t := range transactions {
 		ts, err := newTransactionFromCSV(t)
@@ -59,7 +65,21 @@ func main() {
 		}
 		ta = append(ta, ts)
 	}
-	fmt.Printf("%+v", ta[0])
+	sTransactions.transactions = ta
+}
+
+func extractMetaFields(b *bufio.Reader) ([]string, error) {
+	var meta = make([]string, 0, 14)
+	for i := 0; i < 14; i++ {
+		line, err := b.ReadString('\n')
+		if err != nil {
+			return nil, fmt.Errorf("could not read line %d: %w", i, err)
+		}
+		if line != "\n" {
+			meta = append(meta, line)
+		}
+	}
+	return meta, nil
 }
 
 // cleanUpTransactions removes the first line of the csv data, and reverses the order of the rest,
