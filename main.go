@@ -66,6 +66,22 @@ func main() {
 		ta = append(ta, ts)
 	}
 	sTransactions.transactions = ta
+
+	staFileName := strings.ReplaceAll(csvFileName, ".csv", ".sta")
+	staFile, err := os.Create(staFileName)
+	if err != nil {
+		log.Fatalf("could not create file: %s: %v ", staFileName, err)
+	}
+
+	err = sTransactions.convertToMt940(staFile)
+	if err != nil {
+		log.Fatalf("could not convert to MT940: %v", err)
+	}
+	err = staFile.Close()
+	if err != nil {
+		log.Fatalf("could close file: %v", err)
+	}
+	log.Println("done")
 }
 
 func extractMetaFields(b *bufio.Reader) ([]string, error) {
@@ -103,5 +119,5 @@ func getAccountNumber(meta []string) (string, string) {
 	iban = strings.ReplaceAll(iban, " ", "")
 	// blz begins in position 4 and has 8 chars
 	// accountNumber begins in position 12 and has 10 chars (until the end of iban)
-	return iban[4:12], iban[12:]
+	return iban[4:12], strings.TrimSpace(iban[12:])
 }
