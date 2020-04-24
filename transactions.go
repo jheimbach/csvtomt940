@@ -32,12 +32,53 @@ type transaction struct {
 	BuchungsText     string
 	Verwendungszweck string
 	Saldo            *money.Money
-	Betrag           *money.Money
+	Amount           *money.Money
+}
+
+func newTransactionFromCSV(entry []string) (*transaction, error) {
+	bT, err := time.Parse("02.01.2006", entry[Buchung])
+	if err != nil {
+		return nil, fmt.Errorf("could not parse Buchung: %w", err)
+	}
+
+	vT, err := time.Parse("02.01.2006", entry[Valuta])
+	if err != nil {
+		return nil, fmt.Errorf("could not parse Valuta: %w", err)
+	}
+
+	sInt, err := moneyStringToInt(entry[Saldo])
+	if err != nil {
+		return nil, fmt.Errorf("could not parse saldo to int: %w", err)
+	}
+	sMoney := money.New(int64(sInt), entry[SWaehrung])
+
+	bInt, err := moneyStringToInt(entry[Betrag])
+	if err != nil {
+		return nil, fmt.Errorf("could not parse amount to int: %w", err)
+	}
+	bMoney := money.New(int64(bInt), entry[BWaehrung])
+
+	return &transaction{
+		Buchung:          bT,
+		Valuta:           vT,
+		Auftraggeber:     entry[Auftraggeber],
+		BuchungsText:     entry[Buchungstext],
+		Verwendungszweck: entry[Verwendungszweck],
+		Saldo:            sMoney,
+		Amount:           bMoney,
+	}, nil
 }
 
 func (t *transaction) createSalesLine(writer io.Writer) error {
 	// :60:_YYMMDD_MMDD_CD_00,00NTRFNONREF
-	_, err := writer.Write([]byte(fmt.Sprintf(":61:%s%s%s%sNTRFNONREF\r\n", t.Buchung.Format("060102"), t.Valuta.Format("0102"), isCreditOrDebit(t.Betrag), swiftMoneyFormatter.Format(t.Betrag.Absolute().Amount()))))
+	_, err := writer.Write(
+		[]byte(fmt.Sprintf(":61:%s%s%s%sNTRFNONREF\r\n",
+			t.Buchung.Format("060102"),
+			t.Valuta.Format("0102"),
+			isCreditOrDebit(t.Amount),
+			swiftMoneyFormatter.Format(t.Amount.Absolute().Amount()),
+		)),
+	)
 
 	if err != nil {
 		return fmt.Errorf("could not create sales line: %w", err)
@@ -77,74 +118,10 @@ func (t *transaction) convertToMt940(writer io.Writer) error {
 	return nil
 }
 
-func convertUsageToFields(usage string) string {
-	usageWithControl := fmt.Sprintf("SVWZ+%s", usage)
-	parts := splitStringInParts(usageWithControl, 27)
-	if usage == "" {
-		parts = []string{}
-	}
-
-	result := ""
-	startControl := 20
-	for _, part := range parts {
-		result += fmt.Sprintf("?%d%s", startControl, strings.TrimSpace(part))
-		startControl++
-	}
-	result += fmt.Sprintf("?%d%s", startControl, "KREF+NONREF")
-	return result
-}
-
-func newTransactionFromCSV(entry []string) (*transaction, error) {
-	bT, vT, err := parseTimeValues(entry)
-	if err != nil {
-		return nil, err
-	}
-
-	sMoney, bMoney, err := parseMoneyValues(entry)
-	if err != nil {
-		return nil, err
-	}
-
-	return &transaction{
-		Buchung:          bT,
-		Valuta:           vT,
-		Auftraggeber:     entry[Auftraggeber],
-		BuchungsText:     entry[Buchungstext],
-		Verwendungszweck: entry[Verwendungszweck],
-		Saldo:            sMoney,
-		Betrag:           bMoney,
-	}, nil
-}
-
-func parseMoneyValues(entry []string) (*money.Money, *money.Money, error) {
-	sInt, err := moneyStringToInt(entry[Saldo])
-	if err != nil {
-		return nil, nil, fmt.Errorf("could not parse saldo to int: %w", err)
-	}
-	sMoney := money.New(int64(sInt), entry[SWaehrung])
-
-	bInt, err := moneyStringToInt(entry[Betrag])
-	if err != nil {
-		return nil, nil, fmt.Errorf("could not parse betrag to int: %w", err)
-	}
-	bMoney := money.New(int64(bInt), entry[BWaehrung])
-	return sMoney, bMoney, nil
-}
-
-func parseTimeValues(entry []string) (time.Time, time.Time, error) {
-	bT, err := time.Parse("02.01.2006", entry[Buchung])
-	if err != nil {
-		return time.Time{}, time.Time{}, fmt.Errorf("could not parse Buchung: %w", err)
-	}
-
-	vT, err := time.Parse("02.01.2006", entry[Valuta])
-	if err != nil {
-		return time.Time{}, time.Time{}, fmt.Errorf("could not parse Valuta: %w", err)
-	}
-	return bT, vT, nil
-}
-
 func moneyStringToInt(m string) (int, error) {
+	if m == "" {
+		return 0, nil
+	}
 	m = strings.ReplaceAll(m, ",", "")
 	m = strings.ReplaceAll(m, ".", "")
 	return strconv.Atoi(m)
@@ -170,8 +147,24 @@ func splitStringInParts(s string, l int) []string {
 	}
 	if len(part) > 0 {
 		parts = append(parts, string(part))
-
 	}
 
 	return parts
+}
+
+func convertUsageToFields(usage string) string {
+	usageWithControl := fmt.Sprintf("SVWZ+%s", usage)
+	parts := splitStringInParts(usageWithControl, 27)
+	if usage == "" {
+		parts = []string{}
+	}
+
+	result := ""
+	startControl := 20
+	for _, part := range parts {
+		result += fmt.Sprintf("?%d%s", startControl, strings.TrimSpace(part))
+		startControl++
+	}
+	result += fmt.Sprintf("?%d%s", startControl, "KREF+NONREF")
+	return result
 }

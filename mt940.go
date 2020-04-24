@@ -48,7 +48,7 @@ func (s *swiftTransactions) createBeginSaldoLine(writer io.Writer) error {
 	fTransaction := s.transactions[0]
 
 	// subtract the amount from saldo to get the startSaldo
-	startSaldo, err := fTransaction.Saldo.Subtract(fTransaction.Betrag)
+	startSaldo, err := fTransaction.Saldo.Subtract(fTransaction.Amount)
 	if err != nil {
 		return fmt.Errorf("could not calculate beginsaldo: %w", err)
 	}
