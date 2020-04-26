@@ -56,8 +56,8 @@ func main() {
 	// remove first line and reverse the order
 	transactions = cleanUpTransactions(transactions)
 
-	// create transaction structs
-	var ta = make([]*transaction, 0, len(transactions))
+	// create ingTransaction structs
+	var ta = make([]Transaction, 0, len(transactions))
 	for i, t := range transactions {
 		ts, err := newTransactionFromCSV(t)
 		if err != nil {
@@ -67,57 +67,22 @@ func main() {
 	}
 	sTransactions.transactions = ta
 
+	// create sta file
 	staFileName := strings.ReplaceAll(csvFileName, ".csv", ".sta")
 	staFile, err := os.Create(staFileName)
 	if err != nil {
 		log.Fatalf("could not create file: %s: %v ", staFileName, err)
 	}
 
-	err = sTransactions.convertToMt940(staFile)
+	// convert transactions to mt940 format
+	err = sTransactions.ConvertToMT940(staFile)
 	if err != nil {
 		log.Fatalf("could not convert to MT940: %v", err)
 	}
+	// close the sta file
 	err = staFile.Close()
 	if err != nil {
 		log.Fatalf("could close file: %v", err)
 	}
 	log.Println("done")
-}
-
-func extractMetaFields(b *bufio.Reader) ([]string, error) {
-	var meta = make([]string, 0, 14)
-	for i := 0; i < 14; i++ {
-		line, err := b.ReadString('\n')
-		if err != nil {
-			return nil, fmt.Errorf("could not read line %d: %w", i, err)
-		}
-		if line != "\n" {
-			meta = append(meta, line)
-		}
-	}
-	return meta, nil
-}
-
-// cleanUpTransactions removes the first line of the csv data, and reverses the order of the rest,
-// ING displays all transactions in ascending order, we need descending for mt940
-func cleanUpTransactions(ts [][]string) [][]string {
-	// remove first entry, thats the header
-	ts = ts[1:]
-
-	// reverse transactions
-	for i := 0; i < len(ts)/2; i++ {
-		ts[i], ts[len(ts)-1-i] = ts[len(ts)-1-i], ts[i]
-	}
-	return ts
-}
-
-// getAccountNumber returns blz and accountNumber from meta tags of the ING csv
-func getAccountNumber(meta []string) (string, string) {
-	// get iban line and split it, iban is in the second row
-	iban := strings.Split(meta[2], ";")[1]
-	// replace all whitespaces
-	iban = strings.ReplaceAll(iban, " ", "")
-	// blz begins in position 4 and has 8 chars
-	// accountNumber begins in position 12 and has 10 chars (until the end of iban)
-	return iban[4:12], strings.TrimSpace(iban[12:])
 }
