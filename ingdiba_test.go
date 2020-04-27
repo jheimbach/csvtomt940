@@ -360,9 +360,17 @@ func Test_getAccountNumber(t *testing.T) {
 		accountNumber string
 	}{
 		{
-			name: "",
+			name: "without spaces",
 			args: args{
 				meta: []string{"", "", "IBAN;DE00111111110000000000"},
+			},
+			bankNumber:    "11111111",
+			accountNumber: "0000000000",
+		},
+		{
+			name: "with spaces",
+			args: args{
+				meta: []string{"", "", "IBAN;DE22 1111 1111 0000 0000 00"},
 			},
 			bankNumber:    "11111111",
 			accountNumber: "0000000000",
