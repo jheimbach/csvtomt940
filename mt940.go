@@ -52,7 +52,7 @@ func (s *swiftTransactions) createAccountLine(writer io.Writer) error {
 
 // createStatementLine writes the statementline :28:0 to the writer, it is static and does not change
 func (s *swiftTransactions) createStatementLine(writer io.Writer) error {
-	_, err := writer.Write([]byte(":28:0\r\n"))
+	_, err := writer.Write([]byte(":28C:0\r\n"))
 
 	if err != nil {
 		return fmt.Errorf("could not create statement line: %w", err)

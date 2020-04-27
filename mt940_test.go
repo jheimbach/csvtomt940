@@ -61,7 +61,7 @@ func Test_swiftTransactions_ConvertToMT940(t *testing.T) {
 				bankNumber:    "11111111",
 				transactions:  nil,
 			},
-			wantW:   ":20:CSVTOMT940\r\n:25:11111111/0000000000\r\n:28:0\r\n",
+			wantW:   ":20:CSVTOMT940\r\n:25:11111111/0000000000\r\n:28C:0\r\n",
 			wantErr: true,
 		},
 		{
@@ -84,7 +84,7 @@ func Test_swiftTransactions_ConvertToMT940(t *testing.T) {
 					},
 				}},
 			},
-			wantW:   ":20:CSVTOMT940\r\n:25:11111111/0000000000\r\n:28:0\r\n:60F:C000102EUR99,00\r\n:62F:C000102EUR100,00\r\n",
+			wantW:   ":20:CSVTOMT940\r\n:25:11111111/0000000000\r\n:28C:0\r\n:60F:C000102EUR99,00\r\n:62F:C000102EUR100,00\r\n",
 			wantErr: false,
 		},
 		{
@@ -120,7 +120,7 @@ func Test_swiftTransactions_ConvertToMT940(t *testing.T) {
 					},
 				}},
 			},
-			wantW:   ":20:CSVTOMT940\r\n:25:11111111/0000000000\r\n:28:0\r\n:60F:C000102EUR99,00\r\n:62F:C010203EUR50,00\r\n",
+			wantW:   ":20:CSVTOMT940\r\n:25:11111111/0000000000\r\n:28C:0\r\n:60F:C000102EUR99,00\r\n:62F:C010203EUR50,00\r\n",
 			wantErr: false,
 		},
 		{
@@ -158,7 +158,7 @@ func Test_swiftTransactions_ConvertToMT940(t *testing.T) {
 					},
 				}},
 			},
-			wantW:   ":20:CSVTOMT940\r\n:25:11111111/0000000000\r\n:28:0\r\n:60F:C000102EUR110,50\r\n:61:0001020102D10,50NTRFNONREF\r\n:86:026?00Abschluss?20KREF+NONREF\r\n:61:0001020102C1,00NTRFNONREF\r\n:86:026?00Abschluss?20KREF+NONREF\r\n:62F:C010203EUR50,00\r\n",
+			wantW:   ":20:CSVTOMT940\r\n:25:11111111/0000000000\r\n:28C:0\r\n:60F:C000102EUR110,50\r\n:61:0001020102D10,50NTRFNONREF\r\n:86:026?00Abschluss?20KREF+NONREF\r\n:61:0001020102C1,00NTRFNONREF\r\n:86:026?00Abschluss?20KREF+NONREF\r\n:62F:C010203EUR50,00\r\n",
 			wantErr: false,
 		},
 	}
@@ -518,7 +518,7 @@ func Test_swiftTransactions_createStatementLine(t *testing.T) {
 				bankNumber:    "",
 				transactions:  nil,
 			},
-			wantWriter: ":28:0\r\n",
+			wantWriter: ":28C:0\r\n",
 			wantErr:    false,
 		},
 	}
