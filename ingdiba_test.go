@@ -134,7 +134,7 @@ func Test_newTransactionFromCSV(t *testing.T) {
 			}
 
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("newTransactionFromCSV() got = %v, accountNumber %v", got, tt.want)
+				t.Errorf("newTransactionFromCSV() got = %v, wantWriter %v", got, tt.want)
 			}
 		})
 	}
@@ -185,7 +185,7 @@ func Test_ingtransaction_createSalesLine(t1 *testing.T) {
 				return
 			}
 			if gotWriter := writer.String(); gotWriter != tt.wantWriter {
-				t1.Errorf("createSalesLine() gotWriter = %v, accountNumber %v", gotWriter, tt.wantWriter)
+				t1.Errorf("createSalesLine() gotWriter = %v, wantWriter %v", gotWriter, tt.wantWriter)
 			}
 		})
 	}
@@ -204,12 +204,12 @@ func Test_ingtransaction_createMultipurposeField(t1 *testing.T) {
 				date:            time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
 				valueDate:       time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
 				client:          "",
-				transactionType: "Abschluss",
+				transactionType: "Lastschrift",
 				usage:           "",
 				saldo:           nil,
 				amount:          nil,
 			},
-			wantWriter: ":86:026?00Abschluss?20KREF+NONREF\r\n",
+			wantWriter: ":86:005?00Lastschrift?20KREF+NONREF\r\n",
 			wantErr:    false,
 		},
 		{
@@ -218,12 +218,12 @@ func Test_ingtransaction_createMultipurposeField(t1 *testing.T) {
 				date:            time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
 				valueDate:       time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
 				client:          "",
-				transactionType: "Abschluss",
+				transactionType: "Lastschrift",
 				usage:           "test",
 				saldo:           nil,
 				amount:          nil,
 			},
-			wantWriter: ":86:026?00Abschluss?20SVWZ+test?21KREF+NONREF\r\n",
+			wantWriter: ":86:005?00Lastschrift?20SVWZ+test?21KREF+NONREF\r\n",
 			wantErr:    false,
 		},
 		{
@@ -232,12 +232,12 @@ func Test_ingtransaction_createMultipurposeField(t1 *testing.T) {
 				date:            time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
 				valueDate:       time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
 				client:          "testname",
-				transactionType: "Abschluss",
+				transactionType: "Lastschrift",
 				usage:           "test",
 				saldo:           nil,
 				amount:          nil,
 			},
-			wantWriter: ":86:026?00Abschluss?20SVWZ+test?21KREF+NONREF?32testname\r\n",
+			wantWriter: ":86:005?00Lastschrift?20SVWZ+test?21KREF+NONREF?32testname\r\n",
 			wantErr:    false,
 		},
 		{
@@ -274,7 +274,7 @@ func Test_ingtransaction_createMultipurposeField(t1 *testing.T) {
 				date:            time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
 				valueDate:       time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
 				client:          "testname",
-				transactionType: "Abschluss",
+				transactionType: "Lastschrift",
 				usage:           strings.Repeat("a", 8*27),
 				saldo:           nil,
 				amount:          nil,
@@ -288,7 +288,7 @@ func Test_ingtransaction_createMultipurposeField(t1 *testing.T) {
 				date:            time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
 				valueDate:       time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
 				client:          strings.Repeat("testname", 20),
-				transactionType: "Abschluss",
+				transactionType: "Lastschrift",
 				usage:           strings.Repeat("a", 7*27),
 				saldo:           nil,
 				amount:          nil,
@@ -325,7 +325,7 @@ func Test_ingtransaction_createMultipurposeField(t1 *testing.T) {
 				return
 			}
 			if gotWriter := writer.String(); gotWriter != tt.wantWriter {
-				t1.Errorf("createMultipurposeLine() gotWriter = %v, accountNumber %v", gotWriter, tt.wantWriter)
+				t1.Errorf("createMultipurposeLine() gotWriter = %#v, wantWriter %#v", gotWriter, tt.wantWriter)
 			}
 		})
 	}
