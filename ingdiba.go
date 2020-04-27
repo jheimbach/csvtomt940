@@ -85,10 +85,15 @@ func newTransactionFromCSV(entry []string) (*ingTransaction, error) {
 	}
 	bMoney := money.New(int64(bInt), entry[aCurrency])
 
+	cText := entry[client]
+	if len(cText) >= 54 {
+		return nil, fmt.Errorf("client has to be shorter than 54 chars, got :%s", cText)
+	}
+
 	return &ingTransaction{
 		date:            bT,
 		valueDate:       vT,
-		client:          entry[client],
+		client:          cText,
 		transactionType: entry[transactionType],
 		usage:           entry[usageLine],
 		saldo:           sMoney,
@@ -122,9 +127,9 @@ func (t *ingTransaction) createMultipurposeLine(writer io.Writer) error {
 		return fmt.Errorf("could not find gvc code for text: %s", t.transactionType)
 	}
 
-	ag := "?32" + t.client
+	c, _ := joinFieldsWithControl(splitStringInParts(t.client, 27, true), 32)
 	if t.client == "" {
-		ag = ""
+		c = ""
 	}
 
 	u, err := convertUsageToFields(t.usage)
@@ -132,7 +137,7 @@ func (t *ingTransaction) createMultipurposeLine(writer io.Writer) error {
 		return fmt.Errorf("could not convert usage line: %w", err)
 	}
 
-	lineStr := fmt.Sprintf("%s?00%s%s%s", gvcCode, umlautsReplacer.Replace(t.transactionType), u, ag)
+	lineStr := fmt.Sprintf("%s?00%s%s%s", gvcCode, umlautsReplacer.Replace(t.transactionType), u, c)
 	if len(lineStr) > 390 {
 		return fmt.Errorf("mulitpurpose line is too long")
 	}

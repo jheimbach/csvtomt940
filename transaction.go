@@ -43,14 +43,19 @@ func convertUsageToFields(usage string) (string, error) {
 		return "", fmt.Errorf("usage line is too long")
 	}
 
+	result, startControl := joinFieldsWithControl(parts, 20)
+
+	result += fmt.Sprintf("?%d%s", startControl, "KREF+NONREF")
+	return result, nil
+}
+
+func joinFieldsWithControl(parts []string, startControl int) (string, int) {
 	result := ""
-	startControl := 20
 	for _, part := range parts {
 		result += fmt.Sprintf("?%d%s", startControl, strings.TrimSpace(part))
 		startControl++
 	}
-	result += fmt.Sprintf("?%d%s", startControl, "KREF+NONREF")
-	return result, nil
+	return result, startControl
 }
 
 // splitStringInParts cuts the string in pieces each l chars long

@@ -118,6 +118,12 @@ func Test_newTransactionFromCSV(t *testing.T) {
 			},
 			wantErr: fmt.Errorf("could not parse amount to int: %w", errors.New("strconv.Atoi: parsing \"5-00\": invalid syntax")),
 		},
+		{
+			name:    "client can only be 54 chars long",
+			entry:   []string{"02.01.2000", "02.01.2000", strings.Repeat("a", 56), "test2", "test3", "12,00", "EUR", "5,00", "EUR"},
+			want:    nil,
+			wantErr: fmt.Errorf("client has to be shorter than 54 chars, got :%s", strings.Repeat("a", 56)),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -315,6 +321,23 @@ func Test_ingtransaction_createMultipurposeField(t1 *testing.T) {
 			}, "\r\n")),
 			wantErr: false,
 		},
+		{
+			name: "long client name",
+			transaction: &ingTransaction{
+				date:            time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
+				valueDate:       time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
+				client:          strings.Repeat("b", 53),
+				transactionType: "Lastschrift",
+				usage:           strings.Repeat("a", 27),
+				saldo:           nil,
+				amount:          nil,
+			},
+			wantWriter: fmt.Sprintf(":86:%s\r\n", strings.Join([]string{
+				"005?00Lastschrift?20SVWZ+aaaaaaaaaaaaaaaaaaaaaa?21aaaaa?22KREF+NO",
+				"NREF?32bbbbbbbbbbbbbbbbbbbbbbbbbbb?33bbbbbbbbbbbbbbbbbbbbbbbbbb",
+			}, "\r\n")),
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t1.Run(tt.name, func(t1 *testing.T) {
@@ -331,6 +354,8 @@ func Test_ingtransaction_createMultipurposeField(t1 *testing.T) {
 	}
 }
 
+//":86:005?00Lastschrift?20SVWZ+aaaaaaaaaaaaaaaaaaaaaa?21aaaaa?22KREF+NO\r\nNREF?32bbbbbbbbbbbbbbbbbbbbbbbbbbb?33bbbbbbbbbbbbbbbbbbbbbbbbbb\r\n"
+//":86:005?00Lastschrift?20SVWZ+aaaaaaaaaaaaaaaaaaaaaa?21aaaaa?28KREF+NO\r\nNREF?32bbbbbbbbbbbbbbbbbbbbbbbbbbb?33bbbbbbbbbbbbbbbbbbbbbbbbbb\r\n"
 func Test_ingtransaction_ConvertTOMT940(t1 *testing.T) {
 	tests := []struct {
 		name        string
