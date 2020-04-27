@@ -44,7 +44,7 @@ func Test_splitStringInParts(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := splitStringInParts(tt.args.s, tt.args.l); !reflect.DeepEqual(got, tt.want) {
+			if got := splitStringInParts(tt.args.s, tt.args.l, true); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("splitStringInParts() = %#v, wantBT %#v", got, tt.want)
 			}
 		})

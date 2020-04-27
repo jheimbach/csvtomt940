@@ -35,7 +35,7 @@ func moneyStringToInt(m string) (int, error) {
 // convertUsageToFields splits the usage line in strings of 27 chars and adds control chars from ?20... to ?29
 // if usage line is longer than 8*27 chars, it returns an error
 func convertUsageToFields(usage string) (string, error) {
-	parts := splitStringInParts(fmt.Sprintf("SVWZ+%s", usage), 27)
+	parts := splitStringInParts(fmt.Sprintf("SVWZ+%s", usage), 27, true)
 	if usage == "" {
 		parts = []string{}
 	}
@@ -54,7 +54,7 @@ func convertUsageToFields(usage string) (string, error) {
 }
 
 // splitStringInParts cuts the string in pieces each l chars long
-func splitStringInParts(s string, l int) []string {
+func splitStringInParts(s string, l int, trimWhitespace bool) []string {
 	parts := make([]string, 0, int(math.Ceil(float64(len(s))/float64(l))))
 
 	part := make([]rune, 0, l)
@@ -62,7 +62,7 @@ func splitStringInParts(s string, l int) []string {
 	for _, c := range s {
 		part = append(part, c)
 		if (i+1)%l == 0 {
-			if c == ' ' {
+			if c == ' ' && trimWhitespace {
 				part = part[:len(part)-1]
 				continue
 			}
