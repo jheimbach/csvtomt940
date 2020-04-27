@@ -296,6 +296,25 @@ func Test_ingtransaction_createMultipurposeField(t1 *testing.T) {
 			wantWriter: "",
 			wantErr:    true,
 		},
+		{
+			name: "multipurpose line is split in parts",
+			transaction: &ingTransaction{
+				date:            time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
+				valueDate:       time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
+				client:          "testname",
+				transactionType: "Lastschrift",
+				usage:           strings.Repeat("a", 7*27),
+				saldo:           nil,
+				amount:          nil,
+			},
+			wantWriter: fmt.Sprintf(":86:%s\r\n", strings.Join([]string{
+				"005?00Lastschrift?20SVWZ+aaaaaaaaaaaaaaaaaaaaaa?21aaaaaaaaaaaaaaa",
+				"aaaaaaaaaaaa?22aaaaaaaaaaaaaaaaaaaaaaaaaaa?23aaaaaaaaaaaaaaaaaaaa",
+				"aaaaaaa?24aaaaaaaaaaaaaaaaaaaaaaaaaaa?25aaaaaaaaaaaaaaaaaaaaaaaaa",
+				"aa?26aaaaaaaaaaaaaaaaaaaaaaaaaaa?27aaaaa?28KREF+NONREF?32testname",
+			}, "\r\n")),
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t1.Run(tt.name, func(t1 *testing.T) {

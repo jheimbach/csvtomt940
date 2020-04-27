@@ -132,13 +132,14 @@ func (t *ingTransaction) createMultipurposeLine(writer io.Writer) error {
 		return fmt.Errorf("could not convert usage line: %w", err)
 	}
 
-	lineStr := fmt.Sprintf(":86:%s?00%s%s%s\r\n", gvcCode, umlautsReplacer.Replace(t.transactionType), u, ag)
+	lineStr := fmt.Sprintf("%s?00%s%s%s", gvcCode, umlautsReplacer.Replace(t.transactionType), u, ag)
 	if len(lineStr) > 390 {
 		return fmt.Errorf("mulitpurpose line is too long")
 	}
+	lineParts := splitStringInParts(lineStr, 65, false)
 
 	//:86:999?00BuchungsText?20...?29Verwendungszweck?32Auftraggeber
-	_, err = writer.Write([]byte(lineStr))
+	_, err = writer.Write([]byte(fmt.Sprintf(":86:%s\r\n", strings.Join(lineParts, "\r\n"))))
 	if err != nil {
 		return fmt.Errorf("could not create multipurpose line: %w", err)
 	}
