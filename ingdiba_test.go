@@ -330,7 +330,7 @@ func Test_ingtransaction_ConvertTOMT940(t1 *testing.T) {
 				saldo:           money.New(5000, "EUR"),
 				amount:          money.New(-1050, "EUR"),
 			},
-			wantWriter: ":61:0001020102D10,50NTRFNONREF\r\n:86:026?00Abschluss?20SVWZ+test?21KREF+NONREF?32testname\r\n",
+			wantWriter: ":61:0001020102D10,50NTRFNONREF\r\n:86:805?00Abschluss?20SVWZ+test?21KREF+NONREF?32testname\r\n",
 			wantErr:    false,
 		},
 	}
@@ -343,7 +343,7 @@ func Test_ingtransaction_ConvertTOMT940(t1 *testing.T) {
 				return
 			}
 			if gotWriter := writer.String(); gotWriter != tt.wantWriter {
-				t1.Errorf("ConvertToMT940() gotWriter = %v, accountNumber %v", gotWriter, tt.wantWriter)
+				t1.Errorf("ConvertToMT940() gotWriter = %#v, wantWriter %#v", gotWriter, tt.wantWriter)
 			}
 		})
 	}

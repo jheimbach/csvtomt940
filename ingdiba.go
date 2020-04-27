@@ -25,12 +25,12 @@ const (
 
 // GVCCodes returns the GVC Code for the given transactionType, note this list is not complete, other values are possible
 var GVCCodes = map[string]string{
-	"Abschluss":                         "026",
+	"Abschluss":                         "805",
 	"Gutschrift aus Dauerauftrag":       "052",
 	"Lastschrift":                       "005",
 	"Gutschrift":                        "051",
 	"Überweisung":                       "020",
-	"Entgelt":                           "027",
+	"Entgelt":                           "808",
 	"Retouren":                          "059",
 	"Dauerauftrag / Terminueberweisung": "008",
 }
