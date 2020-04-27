@@ -25,13 +25,14 @@ const (
 
 // GVCCodes returns the GVC Code for the given transactionType, note this list is not complete, other values are possible
 var GVCCodes = map[string]string{
-	"Abschluss":                   "026",
-	"Gutschrift aus Dauerauftrag": "052",
-	"Lastschrift":                 "005",
-	"Gutschrift":                  "051",
-	"Überweisung":                 "020",
-	"Entgelt":                     "027",
-	"Retouren":                    "059",
+	"Abschluss":                         "026",
+	"Gutschrift aus Dauerauftrag":       "052",
+	"Lastschrift":                       "005",
+	"Gutschrift":                        "051",
+	"Überweisung":                       "020",
+	"Entgelt":                           "027",
+	"Retouren":                          "059",
+	"Dauerauftrag / Terminueberweisung": "008",
 }
 
 // ingTransaction is the implementation of Transaction for ing-diba csv format
