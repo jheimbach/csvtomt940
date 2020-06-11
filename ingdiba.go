@@ -106,8 +106,8 @@ func (t *ingTransaction) createSalesLine(writer io.Writer) error {
 	// :61:_YYMMDD_MMDD_CD_00,00NTRFNONREF
 	_, err := writer.Write(
 		[]byte(fmt.Sprintf(":61:%s%s%s%sNTRFNONREF\r\n",
-			t.date.Format("060102"),
-			t.valueDate.Format("0102"),
+			t.valueDate.Format("060102"),
+			t.date.Format("0102"),
 			isCreditOrDebit(t.Amount()),
 			swiftMoneyFormatter.Format(t.Amount().Absolute().Amount()),
 		)),

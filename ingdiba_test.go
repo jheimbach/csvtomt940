@@ -181,6 +181,20 @@ func Test_ingtransaction_createSalesLine(t1 *testing.T) {
 			wantWriter: ":61:0001020102D10,50NTRFNONREF\r\n",
 			wantErr:    false,
 		},
+		{
+			name: "create salesline with different dates",
+			transaction: &ingTransaction{
+				date:            time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
+				valueDate:       time.Date(2000, 01, 01, 0, 0, 0, 0, time.UTC),
+				client:          "",
+				transactionType: "",
+				usage:           "",
+				saldo:           nil,
+				amount:          money.New(-1050, "EUR"),
+			},
+			wantWriter: ":61:0001010102D10,50NTRFNONREF\r\n",
+			wantErr:    false,
+		},
 	}
 	for _, tt := range tests {
 		t1.Run(tt.name, func(t1 *testing.T) {
