@@ -15,98 +15,61 @@ import (
 
 func Test_newTransactionFromCSV(t *testing.T) {
 	tests := []struct {
-		name    string
-		entry   []string
-		want    *ingTransaction
-		wantErr error
+		name        string
+		entry       []string
+		hasCategory bool
+		want        *ingTransaction
+		wantErr     error
 	}{
 		{
 			name:  "both times are valid",
 			entry: []string{"02.01.2000", "03.02.2001", "", "", "", "", "", "", ""},
 			want: &ingTransaction{
-				date:            time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
-				valueDate:       time.Date(2001, 02, 03, 00, 00, 00, 00, time.UTC),
-				client:          "",
-				transactionType: "",
-				usage:           "",
-				saldo:           money.New(0, ""),
-				amount:          money.New(0, ""),
+				date:      time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
+				valueDate: time.Date(2001, 02, 03, 00, 00, 00, 00, time.UTC),
+				saldo:     money.New(0, ""),
+				amount:    money.New(0, ""),
 			},
 			wantErr: nil,
 		},
 		{
-			name:  "bt times is invalid",
-			entry: []string{"0201.2000", "03.02.2001", "", "", "", "", "", "", ""},
-			want: &ingTransaction{
-				date:            time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
-				valueDate:       time.Date(2001, 02, 03, 00, 00, 00, 00, time.UTC),
-				client:          "",
-				transactionType: "",
-				usage:           "",
-				saldo:           money.New(0, ""),
-				amount:          money.New(0, ""),
-			},
+			name:    "bt times is invalid",
+			entry:   []string{"0201.2000", "03.02.2001", "", "", "", "", "", "", ""},
+			want:    nil,
 			wantErr: fmt.Errorf("could not parse date: %w", errors.New("parsing time \"0201.2000\" as \"02.01.2006\": cannot parse \"01.2000\" as \".\"")),
 		},
 		{
-			name:  "vt times is invalid",
-			entry: []string{"02.01.2000", "0302.2001", "", "", "", "", "", "", ""},
-			want: &ingTransaction{
-				date:            time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
-				valueDate:       time.Date(2001, 02, 03, 00, 00, 00, 00, time.UTC),
-				client:          "",
-				transactionType: "",
-				usage:           "",
-				saldo:           money.New(0, ""),
-				amount:          money.New(0, ""),
-			},
+			name:    "vt times is invalid",
+			entry:   []string{"02.01.2000", "0302.2001", "", "", "", "", "", "", ""},
+			want:    nil,
 			wantErr: fmt.Errorf("could not parse valueDate: %w", errors.New("parsing time \"0302.2001\" as \"02.01.2006\": cannot parse \"02.2001\" as \".\"")),
 		},
 		{
 			name:  "both money values are valid",
 			entry: []string{"02.01.2000", "02.01.2000", "", "", "", "12,00", "EUR", "5,00", "EUR"},
 			want: &ingTransaction{
-				date:            time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
-				valueDate:       time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
-				client:          "",
-				transactionType: "",
-				usage:           "",
-				saldo:           money.New(1200, "EUR"),
-				amount:          money.New(500, "EUR"),
+				date:      time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
+				valueDate: time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
+				saldo:     money.New(1200, "EUR"),
+				amount:    money.New(500, "EUR"),
 			},
 			wantErr: nil,
 		},
 		{
-			name:  "saldo money is invalid",
-			entry: []string{"02.01.2000", "02.01.2000", "", "", "", "12-00", "EUR", "5,00", "EUR"},
-			want: &ingTransaction{
-				date:            time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
-				valueDate:       time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
-				client:          "",
-				transactionType: "",
-				usage:           "",
-				saldo:           money.New(1200, "EUR"),
-				amount:          money.New(500, "EUR"),
-			},
+			name:    "saldo money is invalid",
+			entry:   []string{"02.01.2000", "02.01.2000", "", "", "", "12-00", "EUR", "5,00", "EUR"},
+			want:    nil,
 			wantErr: fmt.Errorf("could not parse saldo to int: %w", errors.New("strconv.Atoi: parsing \"12-00\": invalid syntax")),
 		},
 		{
-			name:  "amount money is invalid",
-			entry: []string{"02.01.2000", "02.01.2000", "", "", "", "12,00", "EUR", "5-00", "EUR"},
-			want: &ingTransaction{
-				date:            time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
-				valueDate:       time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
-				client:          "",
-				transactionType: "",
-				usage:           "",
-				saldo:           money.New(1200, "EUR"),
-				amount:          money.New(500, "EUR"),
-			},
+			name:    "amount money is invalid",
+			entry:   []string{"02.01.2000", "02.01.2000", "", "", "", "12,00", "EUR", "5-00", "EUR"},
+			want:    nil,
 			wantErr: fmt.Errorf("could not parse amount to int: %w", errors.New("strconv.Atoi: parsing \"5-00\": invalid syntax")),
 		},
 		{
 			name:  "string fields are set",
-			entry: []string{"02.01.2000", "02.01.2000", "test", "test2", "test3", "12,00", "EUR", "5-00", "EUR"},
+			entry: []string{"02.01.2000", "02.01.2000", "test", "test2", "test3", "12,00", "EUR", "5,00", "EUR"},
 			want: &ingTransaction{
 				date:            time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
 				valueDate:       time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
@@ -116,7 +79,23 @@ func Test_newTransactionFromCSV(t *testing.T) {
 				saldo:           money.New(1200, "EUR"),
 				amount:          money.New(500, "EUR"),
 			},
-			wantErr: fmt.Errorf("could not parse amount to int: %w", errors.New("strconv.Atoi: parsing \"5-00\": invalid syntax")),
+			wantErr: nil,
+		},
+		{
+			hasCategory: true,
+			name:        "string fields are set and transaction has category",
+			entry:       []string{"02.01.2000", "02.01.2000", "client", "transactionType", "category", "usage", "12,00", "EUR", "5,00", "EUR"},
+			want: &ingTransaction{
+				date:            time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
+				valueDate:       time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
+				client:          "client",
+				transactionType: "transactionType",
+				category:        "category",
+				usage:           "usage",
+				saldo:           money.New(1200, "EUR"),
+				amount:          money.New(500, "EUR"),
+			},
+			wantErr: nil,
 		},
 		{
 			name:    "client can only be 54 chars long",
@@ -127,7 +106,7 @@ func Test_newTransactionFromCSV(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := newTransactionFromCSV(tt.entry)
+			got, err := newTransactionFromCSV(tt.entry, tt.hasCategory)
 			if tt.wantErr != nil && err != nil {
 				if tt.wantErr.Error() != err.Error() {
 					t.Errorf("moneyStringToInt() error = %v, wantErr %v", err, tt.wantErr)
@@ -138,10 +117,7 @@ func Test_newTransactionFromCSV(t *testing.T) {
 				t.Errorf("moneyStringToInt() error = %v", err)
 				return
 			}
-
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("newTransactionFromCSV() got = %v, wantWriter %v", got, tt.want)
-			}
+			ingTransactionsAreEqual(t, got, tt.want)
 		})
 	}
 }
@@ -508,5 +484,33 @@ func Test_extractMetaFields(t *testing.T) {
 				t.Errorf("extractMetaFields() got = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func ingTransactionsAreEqual(t *testing.T, a *ingTransaction, b *ingTransaction) {
+	t.Helper()
+	if !a.date.Equal(b.date) {
+		t.Fatalf("date is not equal: %s !== %s", a.date.String(), b.date.String())
+	}
+	if !a.valueDate.Equal(b.valueDate) {
+		t.Fatalf("valueDate is not equal: %s !== %s", a.valueDate.String(), b.valueDate.String())
+	}
+	if a.client != b.client {
+		t.Fatalf("client is not equal: %s !== %s", a.client, b.client)
+	}
+	if a.transactionType != b.transactionType {
+		t.Fatalf("transactionType is not equal: %s !== %s", a.transactionType, b.transactionType)
+	}
+	if a.category != b.category {
+		t.Fatalf("category is not equal: %s !== %s", a.category, b.category)
+	}
+	if a.usage != b.usage {
+		t.Fatalf("usage is not equal: %s !== %s", a.usage, b.usage)
+	}
+	if ok, _ := a.saldo.Equals(b.saldo); !ok {
+		t.Fatalf("saldo is not equal: %s !== %s", a.saldo.Display(), b.saldo.Display())
+	}
+	if ok, _ := a.amount.Equals(b.amount); !ok {
+		t.Fatalf("amount is not equal: %s !== %s", a.amount.Display(), b.amount.Display())
 	}
 }

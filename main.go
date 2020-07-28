@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/csv"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -12,16 +13,18 @@ import (
 )
 
 func usage(programName string) string {
-	return fmt.Sprintf("USAGE: %s\n <transactions.csv>", programName)
+	return fmt.Sprintf("USAGE:\n\t %s <transactions.csv>", programName)
 }
 
 func main() {
+	var oldSyntaxFlag = flag.Bool("old-syntax", false, "Use old CSV syntax, (without category column)")
+	flag.Parse()
 	// if no file is given, return usage message
 	if len(os.Args) < 2 {
 		log.Fatalf(usage(os.Args[0]))
 	}
 	// get csv filename from arguments and open file
-	csvFileName := os.Args[1]
+	csvFileName := flag.Arg(0)
 	csvFile, err := os.Open(csvFileName)
 	if err != nil {
 		log.Printf("Could not open file %s", csvFileName)
@@ -59,7 +62,7 @@ func main() {
 	// create ingTransaction structs
 	var ta = make([]Transaction, 0, len(transactions))
 	for i, t := range transactions {
-		ts, err := newTransactionFromCSV(t)
+		ts, err := newTransactionFromCSV(t, !(*oldSyntaxFlag))
 		if err != nil {
 			log.Fatalf("could not convert entry to struct in line %d: %v", i, err)
 		}

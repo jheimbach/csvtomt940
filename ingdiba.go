@@ -16,6 +16,7 @@ const (
 	valueDate
 	client
 	transactionType
+	category
 	usageLine
 	saldo
 	sCurrency
@@ -41,6 +42,7 @@ type ingTransaction struct {
 	valueDate       time.Time
 	client          string
 	transactionType string
+	category        string
 	usage           string
 	saldo           *money.Money
 	amount          *money.Money
@@ -62,7 +64,11 @@ func (t *ingTransaction) Date() time.Time {
 }
 
 // newTransactionFromCSV returns a transaction from csv entry
-func newTransactionFromCSV(entry []string) (*ingTransaction, error) {
+func newTransactionFromCSV(entry []string, hasCategory bool) (*ingTransaction, error) {
+	var offset = 0
+	if !hasCategory {
+		offset = -1
+	}
 	bT, err := time.Parse("02.01.2006", entry[date])
 	if err != nil {
 		return nil, fmt.Errorf("could not parse date: %w", err)
@@ -73,32 +79,36 @@ func newTransactionFromCSV(entry []string) (*ingTransaction, error) {
 		return nil, fmt.Errorf("could not parse valueDate: %w", err)
 	}
 
-	sInt, err := moneyStringToInt(entry[saldo])
+	sInt, err := moneyStringToInt(entry[saldo+offset])
 	if err != nil {
 		return nil, fmt.Errorf("could not parse saldo to int: %w", err)
 	}
-	sMoney := money.New(int64(sInt), entry[sCurrency])
+	sMoney := money.New(int64(sInt), entry[sCurrency+offset])
 
-	bInt, err := moneyStringToInt(entry[amount])
+	bInt, err := moneyStringToInt(entry[amount+offset])
 	if err != nil {
 		return nil, fmt.Errorf("could not parse amount to int: %w", err)
 	}
-	bMoney := money.New(int64(bInt), entry[aCurrency])
+	bMoney := money.New(int64(bInt), entry[aCurrency+offset])
 
 	cText := entry[client]
 	if len(cText) >= 54 {
 		return nil, fmt.Errorf("client has to be shorter than 54 chars, got :%s", cText)
 	}
-
-	return &ingTransaction{
+	transaction := &ingTransaction{
 		date:            bT,
 		valueDate:       vT,
 		client:          cText,
 		transactionType: entry[transactionType],
-		usage:           entry[usageLine],
+		usage:           entry[usageLine+offset],
 		saldo:           sMoney,
 		amount:          bMoney,
-	}, nil
+	}
+	if hasCategory {
+		transaction.category = entry[category]
+	}
+
+	return transaction, nil
 }
 
 //createSalesLine creates :61: line for MT940 from transaction
