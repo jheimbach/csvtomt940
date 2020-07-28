@@ -93,7 +93,7 @@ func newTransactionFromCSV(entry []string, hasCategory bool) (*ingTransaction, e
 
 	cText := entry[client]
 	if len(cText) >= 54 {
-		return nil, fmt.Errorf("client has to be shorter than 54 chars, got :%s", cText)
+		cText = splitStringInParts(cText, 54, false)[0]
 	}
 	transaction := &ingTransaction{
 		date:            bT,

@@ -97,12 +97,6 @@ func Test_newTransactionFromCSV(t *testing.T) {
 			},
 			wantErr: nil,
 		},
-		{
-			name:    "client can only be 54 chars long",
-			entry:   []string{"02.01.2000", "02.01.2000", strings.Repeat("a", 56), "test2", "test3", "12,00", "EUR", "5,00", "EUR"},
-			want:    nil,
-			wantErr: fmt.Errorf("client has to be shorter than 54 chars, got :%s", strings.Repeat("a", 56)),
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -424,9 +418,6 @@ func Test_getAccountNumber(t *testing.T) {
 }
 
 func Test_cleanUpTransactions(t *testing.T) {
-	type args struct {
-		ts [][]string
-	}
 	tests := []struct {
 		name string
 		ts   [][]string
