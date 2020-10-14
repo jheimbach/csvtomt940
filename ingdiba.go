@@ -28,6 +28,7 @@ const (
 var GVCCodes = map[string]string{
 	"Abschluss":                         "805",
 	"Gutschrift aus Dauerauftrag":       "052",
+	"Abbuchung":                         "004",
 	"Lastschrift":                       "005",
 	"Gutschrift":                        "051",
 	"Überweisung":                       "020",
