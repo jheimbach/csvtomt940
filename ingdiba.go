@@ -31,6 +31,7 @@ var GVCCodes = map[string]string{
 	"Abbuchung":                         "004",
 	"Lastschrift":                       "005",
 	"Gutschrift":                        "051",
+	"Gehalt/Rente":                      "053",
 	"Überweisung":                       "020",
 	"Entgelt":                           "808",
 	"Retouren":                          "059",
