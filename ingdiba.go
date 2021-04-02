@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/JHeimbach/csvtomt940/converter"
 	"github.com/Rhymond/go-money"
 )
 
@@ -81,13 +82,13 @@ func newTransactionFromCSV(entry []string, hasCategory bool) (*ingTransaction, e
 		return nil, fmt.Errorf("could not parse valueDate: %w", err)
 	}
 
-	sInt, err := moneyStringToInt(entry[saldo+offset])
+	sInt, err := converter.MoneyStringToInt(entry[saldo+offset])
 	if err != nil {
 		return nil, fmt.Errorf("could not parse saldo to int: %w", err)
 	}
 	sMoney := money.New(int64(sInt), entry[sCurrency+offset])
 
-	bInt, err := moneyStringToInt(entry[amount+offset])
+	bInt, err := converter.MoneyStringToInt(entry[amount+offset])
 	if err != nil {
 		return nil, fmt.Errorf("could not parse amount to int: %w", err)
 	}
@@ -95,7 +96,7 @@ func newTransactionFromCSV(entry []string, hasCategory bool) (*ingTransaction, e
 
 	cText := entry[client]
 	if len(cText) >= 54 {
-		cText = splitStringInParts(cText, 54, false)[0]
+		cText = converter.SplitStringInParts(cText, 54, false)[0]
 	}
 	transaction := &ingTransaction{
 		date:            bT,
@@ -120,7 +121,7 @@ func (t *ingTransaction) createSalesLine(writer io.Writer) error {
 		[]byte(fmt.Sprintf(":61:%s%s%s%sNTRFNONREF\r\n",
 			t.valueDate.Format("060102"),
 			t.date.Format("0102"),
-			isCreditOrDebit(t.Amount()),
+			converter.IsCreditOrDebit(t.Amount()),
 			swiftMoneyFormatter.Format(t.Amount().Absolute().Amount()),
 		)),
 	)
@@ -139,21 +140,21 @@ func (t *ingTransaction) createMultipurposeLine(writer io.Writer) error {
 		return fmt.Errorf("could not find gvc code for text: %s", t.transactionType)
 	}
 
-	c, _ := joinFieldsWithControl(splitStringInParts(t.client, 27, true), 32)
+	c, _ := converter.JoinFieldsWithControl(converter.SplitStringInParts(t.client, 27, true), 32)
 	if t.client == "" {
 		c = ""
 	}
 
-	u, err := convertUsageToFields(t.usage)
+	u, err := converter.ConvertUsageToFields(t.usage)
 	if err != nil {
 		return fmt.Errorf("could not convert usage line: %w", err)
 	}
 
-	lineStr := fmt.Sprintf("%s?00%s%s%s", gvcCode, umlautsReplacer.Replace(t.transactionType), u, c)
+	lineStr := fmt.Sprintf("%s?00%s%s%s", gvcCode, converter.ConvertUmlauts(t.transactionType), u, c)
 	if len(lineStr) > 390 {
 		return fmt.Errorf("mulitpurpose line is too long")
 	}
-	lineParts := splitStringInParts(lineStr, 65, false)
+	lineParts := converter.SplitStringInParts(lineStr, 65, false)
 
 	//:86:999?00BuchungsText?20...?29Verwendungszweck?32Auftraggeber
 	_, err = writer.Write([]byte(fmt.Sprintf(":86:%s\r\n", strings.Join(lineParts, "\r\n"))))

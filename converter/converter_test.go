@@ -1,4 +1,4 @@
-package main
+package converter
 
 import (
 	"reflect"
@@ -44,7 +44,7 @@ func Test_splitStringInParts(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := splitStringInParts(tt.args.s, tt.args.l, true); !reflect.DeepEqual(got, tt.want) {
+			if got := SplitStringInParts(tt.args.s, tt.args.l, true); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("splitStringInParts() = %#v, wantBT %#v", got, tt.want)
 			}
 		})
@@ -120,7 +120,7 @@ func Test_moneyStringToInt(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := moneyStringToInt(tt.args.m)
+			got, err := MoneyStringToInt(tt.args.m)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("moneyStringToInt() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -163,7 +163,7 @@ func Test_convertUsageToFields(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := convertUsageToFields(tt.usage)
+			got, err := ConvertUsageToFields(tt.usage)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("convertUsageToFields() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -195,7 +195,7 @@ func Test_isCreditOrDebit(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := isCreditOrDebit(tt.amount); got != tt.want {
+			if got := IsCreditOrDebit(tt.amount); got != tt.want {
 				t.Errorf("isCreditOrDebit() = %v, accountNumber %v", got, tt.want)
 			}
 		})

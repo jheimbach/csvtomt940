@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/JHeimbach/csvtomt940/converter"
 	"github.com/Rhymond/go-money"
 )
 
@@ -75,7 +76,7 @@ func (s *swiftTransactions) createStartSaldoLine(writer io.Writer) error {
 	}
 
 	// write line
-	_, err = writer.Write([]byte(fmt.Sprintf(":60F:%s%s%s%s\r\n", isCreditOrDebit(startSaldo), fTransaction.Date().Format("060102"), startSaldo.Currency().Code, swiftMoneyFormatter.Format(startSaldo.Absolute().Amount()))))
+	_, err = writer.Write([]byte(fmt.Sprintf(":60F:%s%s%s%s\r\n", converter.IsCreditOrDebit(startSaldo), fTransaction.Date().Format("060102"), startSaldo.Currency().Code, swiftMoneyFormatter.Format(startSaldo.Absolute().Amount()))))
 	if err != nil {
 		return fmt.Errorf("could not create begin startSaldo line: %w", err)
 	}
@@ -91,7 +92,7 @@ func (s *swiftTransactions) createEndSaldoLine(writer io.Writer) error {
 
 	endSaldo := lTransaction.Saldo()
 
-	_, err := writer.Write([]byte(fmt.Sprintf(":62F:%s%s%s%s", isCreditOrDebit(endSaldo), lTransaction.Date().Format("060102"), endSaldo.Currency().Code, swiftMoneyFormatter.Format(endSaldo.Absolute().Amount()))))
+	_, err := writer.Write([]byte(fmt.Sprintf(":62F:%s%s%s%s", converter.IsCreditOrDebit(endSaldo), lTransaction.Date().Format("060102"), endSaldo.Currency().Code, swiftMoneyFormatter.Format(endSaldo.Absolute().Amount()))))
 
 	if err != nil {
 		return fmt.Errorf("could not create end saldo line: %w", err)
