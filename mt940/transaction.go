@@ -1,8 +1,9 @@
-package main
+package mt940
 
 import (
-	"github.com/Rhymond/go-money"
 	"time"
+
+	"github.com/Rhymond/go-money"
 )
 
 // Transaction is the interface for each transaction line, it should convert to a valid mt940 string with lines 61 and 86

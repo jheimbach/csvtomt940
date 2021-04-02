@@ -1,11 +1,12 @@
-package main
+package mt940
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 
 	"github.com/JHeimbach/csvtomt940/converter"
-	"github.com/Rhymond/go-money"
+	"github.com/JHeimbach/csvtomt940/formatter"
 )
 
 // MT940Converter converts csv transactions into the MT940 format
@@ -13,19 +14,21 @@ type MT940Converter interface {
 	ConvertToMT940(writer io.Writer) error
 }
 
-// swiftTransactions creates a MT940 statement from given transactions
-// accountNumber and bankNumber are required for the accountLine (:25:)
-type swiftTransactions struct {
-	accountNumber string
-	bankNumber    string
-	transactions  []Transaction
+type Bank interface {
+	MT940Converter
+	ParseCsv(b *bufio.Reader) *BankData
 }
 
-// swiftMoneyFormatter formats money values according the specification for amount values in MT940
-var swiftMoneyFormatter = money.NewFormatter(2, ",", "", "", "1")
+// swiftTransactions creates a MT940 statement from given transactions
+// accountNumber and bankNumber are required for the accountLine (:25:)
+type BankData struct {
+	AccountNumber string
+	BankNumber    string
+	Transactions  []Transaction
+}
 
 // createHeaderLine writes a headerline to the writer, it is static and returns always :20:CSVTOMT940
-func (s *swiftTransactions) createHeaderLine(writer io.Writer) error {
+func (s *BankData) createHeaderLine(writer io.Writer) error {
 	_, err := writer.Write([]byte(":20:CSVTOMT940\r\n"))
 
 	if err != nil {
@@ -34,16 +37,25 @@ func (s *swiftTransactions) createHeaderLine(writer io.Writer) error {
 	return nil
 }
 
-// createAccountLine creates account line :25: with bankNumber and accountNumber
-func (s *swiftTransactions) createAccountLine(writer io.Writer) error {
-	if s.bankNumber == "" {
+// createAccountLine creates account line :25: with BankNumber and AccountNumber
+func (s *BankData) createAccountLine(writer io.Writer) error {
+	if s.BankNumber == "" {
 		return fmt.Errorf("could not create account line with empty bankNumber")
 	}
-	if s.accountNumber == "" {
+	if s.AccountNumber == "" {
 		return fmt.Errorf("could not create account line with empty accountNumber")
 	}
 
-	_, err := writer.Write([]byte(fmt.Sprintf(":25:%s/%s\r\n", s.bankNumber, s.accountNumber)))
+	// :25:<BankNumber><AccountNumber>
+	_, err := writer.Write(
+		[]byte(
+			fmt.Sprintf(
+				":25:%s/%s\r\n",
+				s.BankNumber,
+				s.AccountNumber,
+			),
+		),
+	)
 
 	if err != nil {
 		return fmt.Errorf("could not create account line: %w", err)
@@ -52,7 +64,7 @@ func (s *swiftTransactions) createAccountLine(writer io.Writer) error {
 }
 
 // createStatementLine writes the statementline :28:0 to the writer, it is static and does not change
-func (s *swiftTransactions) createStatementLine(writer io.Writer) error {
+func (s *BankData) createStatementLine(writer io.Writer) error {
 	_, err := writer.Write([]byte(":28C:0\r\n"))
 
 	if err != nil {
@@ -62,12 +74,12 @@ func (s *swiftTransactions) createStatementLine(writer io.Writer) error {
 }
 
 // createStartSaldoLine creates the start saldo line :60F: with help of the first transaction
-func (s *swiftTransactions) createStartSaldoLine(writer io.Writer) error {
-	if len(s.transactions) <= 0 {
+func (s *BankData) createStartSaldoLine(writer io.Writer) error {
+	if len(s.Transactions) <= 0 {
 		return fmt.Errorf("no transactions found, could not create start saldo line")
 	}
 	// get the first ingTransaction to calculate start saldo
-	fTransaction := s.transactions[0]
+	fTransaction := s.Transactions[0]
 
 	// subtract the amount from saldo to get the startSaldo
 	startSaldo, err := fTransaction.Saldo().Subtract(fTransaction.Amount())
@@ -75,8 +87,18 @@ func (s *swiftTransactions) createStartSaldoLine(writer io.Writer) error {
 		return fmt.Errorf("could not calculate beginsaldo: %w", err)
 	}
 
-	// write line
-	_, err = writer.Write([]byte(fmt.Sprintf(":60F:%s%s%s%s\r\n", converter.IsCreditOrDebit(startSaldo), fTransaction.Date().Format("060102"), startSaldo.Currency().Code, swiftMoneyFormatter.Format(startSaldo.Absolute().Amount()))))
+	// :60F:<DebitOrCredit><Date><Currency><Amount>
+	_, err = writer.Write(
+		[]byte(
+			fmt.Sprintf(
+				":60F:%s%s%s%s\r\n",
+				converter.IsCreditOrDebit(startSaldo),
+				fTransaction.Date().Format("060102"),
+				startSaldo.Currency().Code,
+				formatter.ConvertMoneyToString(startSaldo.Absolute()),
+			),
+		),
+	)
 	if err != nil {
 		return fmt.Errorf("could not create begin startSaldo line: %w", err)
 	}
@@ -84,15 +106,26 @@ func (s *swiftTransactions) createStartSaldoLine(writer io.Writer) error {
 }
 
 // createEndSaldoLine creates end saldo line :62F: with help of the last transaction
-func (s *swiftTransactions) createEndSaldoLine(writer io.Writer) error {
-	if len(s.transactions) <= 0 {
+func (s *BankData) createEndSaldoLine(writer io.Writer) error {
+	if len(s.Transactions) <= 0 {
 		return fmt.Errorf("no transactions found, could not create end saldo line")
 	}
-	lTransaction := s.transactions[len(s.transactions)-1]
+	lTransaction := s.Transactions[len(s.Transactions)-1]
 
 	endSaldo := lTransaction.Saldo()
 
-	_, err := writer.Write([]byte(fmt.Sprintf(":62F:%s%s%s%s", converter.IsCreditOrDebit(endSaldo), lTransaction.Date().Format("060102"), endSaldo.Currency().Code, swiftMoneyFormatter.Format(endSaldo.Absolute().Amount()))))
+	// :62F:<DebitOrCredit><Date><Currency><Amount>
+	_, err := writer.Write(
+		[]byte(
+			fmt.Sprintf(
+				":62F:%s%s%s%s",
+				converter.IsCreditOrDebit(endSaldo),
+				lTransaction.Date().Format("060102"),
+				endSaldo.Currency().Code,
+				formatter.ConvertMoneyToString(endSaldo.Absolute()),
+			),
+		),
+	)
 
 	if err != nil {
 		return fmt.Errorf("could not create end saldo line: %w", err)
@@ -101,7 +134,7 @@ func (s *swiftTransactions) createEndSaldoLine(writer io.Writer) error {
 }
 
 // ConvertToMT940 calls all line creation functions and writes a complete MT940 statement to the given writer
-func (s *swiftTransactions) ConvertToMT940(w io.Writer) error {
+func (s *BankData) ConvertToMT940(w io.Writer) error {
 	err := s.createHeaderLine(w)
 	if err != nil {
 		return err
@@ -119,7 +152,7 @@ func (s *swiftTransactions) ConvertToMT940(w io.Writer) error {
 		return err
 	}
 
-	for i, t := range s.transactions {
+	for i, t := range s.Transactions {
 		err = t.ConvertToMT940(w)
 		if err != nil {
 			return fmt.Errorf("could not convert transaction in line %d: %w", i, err)

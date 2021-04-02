@@ -2,13 +2,14 @@ package main
 
 import (
 	"bufio"
-	"encoding/csv"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"strings"
 
+	"github.com/JHeimbach/csvtomt940/banks/ing"
+	"github.com/JHeimbach/csvtomt940/mt940"
 	"golang.org/x/text/encoding/charmap"
 )
 
@@ -17,7 +18,8 @@ func usage(programName string) string {
 }
 
 func main() {
-	var oldSyntaxFlag = flag.Bool("old-syntax", false, "Use old CSV syntax, (without category column)")
+	var ingHasCategory = flag.Bool("ing-has-category", true, "Set to false when ing csv has no category column")
+	var bankType = flag.String("bank-type", "ing", "Which converter should be used (available options: ing, n26")
 	flag.Parse()
 	// if no file is given, return usage message
 	if len(os.Args) < 2 {
@@ -34,41 +36,8 @@ func main() {
 	// convert to utf8 because ing-diba encodes in ISO8859-1
 	b := bufio.NewReader(charmap.ISO8859_1.NewDecoder().Reader(csvFile))
 
-	// extract the first 14 lines from the reader, thats the meta infos
-	meta, err := extractMetaFields(b)
-	if err != nil {
-		log.Fatalf("could not read meta fields: %v", err)
-	}
-
-	// extract banknumber and accountnumber from meta fields
-	bankNumber, accountNumber := getAccountNumber(meta)
-
-	sTransactions := &swiftTransactions{
-		accountNumber: accountNumber,
-		bankNumber:    bankNumber,
-	}
-
-	// read rest of the file as csv
-	cr := csv.NewReader(b)
-	cr.Comma = ';'
-
-	transactions, err := cr.ReadAll()
-	if err != nil {
-		log.Fatalf("could not read transactions from csv %v", err)
-	}
-	// remove first line and reverse the order
-	transactions = cleanUpTransactions(transactions)
-
-	// create ingTransaction structs
-	var ta = make([]Transaction, 0, len(transactions))
-	for i, t := range transactions {
-		ts, err := newTransactionFromCSV(t, !(*oldSyntaxFlag))
-		if err != nil {
-			log.Fatalf("could not convert entry to struct in line %d: %v", i, err)
-		}
-		ta = append(ta, ts)
-	}
-	sTransactions.transactions = ta
+	bank := getBank(*bankType, *ingHasCategory)
+	bank.ParseCsv(b)
 
 	// create sta file
 	staFileName := strings.ReplaceAll(csvFileName, ".csv", ".sta")
@@ -77,8 +46,7 @@ func main() {
 		log.Fatalf("could not create file: %s: %v ", staFileName, err)
 	}
 
-	// convert transactions to mt940 format
-	err = sTransactions.ConvertToMT940(staFile)
+	err = bank.ConvertToMT940(staFile)
 	if err != nil {
 		log.Fatalf("could not convert to MT940: %v", err)
 	}
@@ -88,4 +56,16 @@ func main() {
 		log.Fatalf("could close file: %v", err)
 	}
 	log.Println("done")
+}
+
+func getBank(bankType string, ingHasCategory bool) mt940.Bank {
+	switch bankType {
+	case "ing":
+		{
+			return &ing.Ing{
+				HasCategory: ingHasCategory,
+			}
+		}
+	}
+	return nil
 }

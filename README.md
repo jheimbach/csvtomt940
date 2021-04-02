@@ -12,19 +12,20 @@ To install you have to have [go](https://golang.org/) installed on your machine.
 
 Install it via go get:
 
-```shell script
+```shell
 go get github.com/jheimbach/csvtomt940
 ```
 
 ## Usage
 To run the converter run:
-```shell script
+```shell
 csvtomt940 SourceFile.csv
 ```
 
 It will produce a .sta file with the same name as the given .csv file
 
 ## Flags
-| name | usage|
-|---|---|
-|`-old-syntax`| Use this if you want to use this converter with old csv files that don't have a category entry |
+| name | default| usage|
+|---|---|---|
+|`-ing-has-category`| `true` | Use this if you want to use this converter with the old csv files from ing (that don't have a category entry), set this flag to false |
+|`-bank-type`| `ing`| this program can convert the csv from ing and n26 bank|

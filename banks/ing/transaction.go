@@ -1,17 +1,17 @@
-package main
+package ing
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"strings"
 	"time"
 
 	"github.com/JHeimbach/csvtomt940/converter"
+	"github.com/JHeimbach/csvtomt940/formatter"
 	"github.com/Rhymond/go-money"
 )
 
-// this consts are used to determine the order of fields in the ing-diba csv
+// column mapping of ing csv file
 const (
 	date int = iota
 	valueDate
@@ -116,13 +116,14 @@ func newTransactionFromCSV(entry []string, hasCategory bool) (*ingTransaction, e
 
 //createSalesLine creates :61: line for MT940 from transaction
 func (t *ingTransaction) createSalesLine(writer io.Writer) error {
+	// :61:<ValueDate><Date><IsCreditOrDebit><Amount>
 	// :61:_YYMMDD_MMDD_CD_00,00NTRFNONREF
 	_, err := writer.Write(
 		[]byte(fmt.Sprintf(":61:%s%s%s%sNTRFNONREF\r\n",
 			t.valueDate.Format("060102"),
 			t.date.Format("0102"),
 			converter.IsCreditOrDebit(t.Amount()),
-			swiftMoneyFormatter.Format(t.Amount().Absolute().Amount()),
+			formatter.ConvertMoneyToString(t.Amount().Absolute()),
 		)),
 	)
 
@@ -156,8 +157,16 @@ func (t *ingTransaction) createMultipurposeLine(writer io.Writer) error {
 	}
 	lineParts := converter.SplitStringInParts(lineStr, 65, false)
 
+	// :86:<GVCCode>?00<GVCText>?20..29<MEMO>?32<Payee>
 	//:86:999?00BuchungsText?20...?29Verwendungszweck?32Auftraggeber
-	_, err = writer.Write([]byte(fmt.Sprintf(":86:%s\r\n", strings.Join(lineParts, "\r\n"))))
+	_, err = writer.Write(
+		[]byte(
+			fmt.Sprintf(
+				":86:%s\r\n",
+				strings.Join(lineParts, "\r\n"),
+			),
+		),
+	)
 	if err != nil {
 		return fmt.Errorf("could not create multipurpose line: %w", err)
 	}
@@ -176,44 +185,4 @@ func (t *ingTransaction) ConvertToMT940(writer io.Writer) error {
 		return fmt.Errorf("could not convert ingTransaction to mt940: %w", err)
 	}
 	return nil
-}
-
-// getAccountNumber returns blz and accountNumber from meta tags of the ING csv
-func getAccountNumber(meta []string) (string, string) {
-	// get iban line and split it, iban is in the second row
-	iban := strings.Split(meta[2], ";")[1]
-	// replace all whitespaces
-	iban = strings.ReplaceAll(iban, " ", "")
-	// blz begins in position 4 and has 8 chars
-	// accountNumber begins in position 12 and has 10 chars (until the end of iban)
-	return iban[4:12], strings.TrimSpace(iban[12:])
-}
-
-// cleanUpTransactions removes the first line of the csv data, and reverses the order of the rest,
-// ING displays all transactions in ascending order, we need descending for mt940
-func cleanUpTransactions(ts [][]string) [][]string {
-	// remove first entry, thats the header
-	ts = ts[1:]
-
-	// reverse transactions
-	for i := 0; i < len(ts)/2; i++ {
-		ts[i], ts[len(ts)-1-i] = ts[len(ts)-1-i], ts[i]
-	}
-	return ts
-}
-
-// extractMetaFields removes and returns the first 15 lines from the csv content,
-// that are in case of the ing-Diba meta fields that are no transactions and only infos about the sheet
-func extractMetaFields(b *bufio.Reader) ([]string, error) {
-	var meta = make([]string, 0, 14)
-	for i := 0; i < 14; i++ {
-		line, err := b.ReadString('\n')
-		if err != nil {
-			return nil, fmt.Errorf("could not read line %d: %w", i, err)
-		}
-		if line != "\n" {
-			meta = append(meta, line)
-		}
-	}
-	return meta, nil
 }

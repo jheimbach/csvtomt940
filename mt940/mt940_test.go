@@ -1,4 +1,4 @@
-package main
+package mt940
 
 import (
 	"bytes"
@@ -32,7 +32,7 @@ func (m *mockTransaction) Date() time.Time {
 	return m.date()
 }
 
-func Test_swiftTransactions_ConvertToMT940(t *testing.T) {
+func Test_SwiftTransactions_ConvertToMT940(t *testing.T) {
 	type fields struct {
 		accountNumber string
 		bankNumber    string
@@ -164,10 +164,10 @@ func Test_swiftTransactions_ConvertToMT940(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &swiftTransactions{
-				accountNumber: tt.fields.accountNumber,
-				bankNumber:    tt.fields.bankNumber,
-				transactions:  tt.fields.transactions,
+			s := &BankData{
+				AccountNumber: tt.fields.accountNumber,
+				BankNumber:    tt.fields.bankNumber,
+				Transactions:  tt.fields.transactions,
 			}
 			w := &bytes.Buffer{}
 			err := s.ConvertToMT940(w)
@@ -182,7 +182,7 @@ func Test_swiftTransactions_ConvertToMT940(t *testing.T) {
 	}
 }
 
-func Test_swiftTransactions_createAccountLine(t *testing.T) {
+func Test_SwiftTransactions_createAccountLine(t *testing.T) {
 	type fields struct {
 		accountNumber string
 		bankNumber    string
@@ -237,10 +237,10 @@ func Test_swiftTransactions_createAccountLine(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &swiftTransactions{
-				accountNumber: tt.fields.accountNumber,
-				bankNumber:    tt.fields.bankNumber,
-				transactions:  tt.fields.transactions,
+			s := &BankData{
+				AccountNumber: tt.fields.accountNumber,
+				BankNumber:    tt.fields.bankNumber,
+				Transactions:  tt.fields.transactions,
 			}
 			writer := &bytes.Buffer{}
 			err := s.createAccountLine(writer)
@@ -255,7 +255,7 @@ func Test_swiftTransactions_createAccountLine(t *testing.T) {
 	}
 }
 
-func Test_swiftTransactions_createBeginSaldoLine(t *testing.T) {
+func Test_SwiftTransactions_createBeginSaldoLine(t *testing.T) {
 	type fields struct {
 		accountNumber string
 		bankNumber    string
@@ -395,10 +395,10 @@ func Test_swiftTransactions_createBeginSaldoLine(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &swiftTransactions{
-				accountNumber: tt.fields.accountNumber,
-				bankNumber:    tt.fields.bankNumber,
-				transactions:  tt.fields.transactions,
+			s := &BankData{
+				AccountNumber: tt.fields.accountNumber,
+				BankNumber:    tt.fields.bankNumber,
+				Transactions:  tt.fields.transactions,
 			}
 			writer := &bytes.Buffer{}
 			err := s.createStartSaldoLine(writer)
@@ -413,7 +413,7 @@ func Test_swiftTransactions_createBeginSaldoLine(t *testing.T) {
 	}
 }
 
-func Test_swiftTransactions_createEndSaldoLine(t *testing.T) {
+func Test_SwiftTransactions_createEndSaldoLine(t *testing.T) {
 	type fields struct {
 		accountNumber string
 		bankNumber    string
@@ -438,10 +438,10 @@ func Test_swiftTransactions_createEndSaldoLine(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &swiftTransactions{
-				accountNumber: tt.fields.accountNumber,
-				bankNumber:    tt.fields.bankNumber,
-				transactions:  tt.fields.transactions,
+			s := &BankData{
+				AccountNumber: tt.fields.accountNumber,
+				BankNumber:    tt.fields.bankNumber,
+				Transactions:  tt.fields.transactions,
 			}
 			writer := &bytes.Buffer{}
 			err := s.createEndSaldoLine(writer)
@@ -456,7 +456,7 @@ func Test_swiftTransactions_createEndSaldoLine(t *testing.T) {
 	}
 }
 
-func Test_swiftTransactions_createHeaderLine(t *testing.T) {
+func Test_SwiftTransactions_createHeaderLine(t *testing.T) {
 	type fields struct {
 		accountNumber string
 		bankNumber    string
@@ -481,10 +481,10 @@ func Test_swiftTransactions_createHeaderLine(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &swiftTransactions{
-				accountNumber: tt.fields.accountNumber,
-				bankNumber:    tt.fields.bankNumber,
-				transactions:  tt.fields.transactions,
+			s := &BankData{
+				AccountNumber: tt.fields.accountNumber,
+				BankNumber:    tt.fields.bankNumber,
+				Transactions:  tt.fields.transactions,
 			}
 			writer := &bytes.Buffer{}
 			err := s.createHeaderLine(writer)
@@ -499,7 +499,7 @@ func Test_swiftTransactions_createHeaderLine(t *testing.T) {
 	}
 }
 
-func Test_swiftTransactions_createStatementLine(t *testing.T) {
+func Test_SwiftTransactions_createStatementLine(t *testing.T) {
 	type fields struct {
 		accountNumber string
 		bankNumber    string
@@ -524,10 +524,10 @@ func Test_swiftTransactions_createStatementLine(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &swiftTransactions{
-				accountNumber: tt.fields.accountNumber,
-				bankNumber:    tt.fields.bankNumber,
-				transactions:  tt.fields.transactions,
+			s := &BankData{
+				AccountNumber: tt.fields.accountNumber,
+				BankNumber:    tt.fields.bankNumber,
+				Transactions:  tt.fields.transactions,
 			}
 			writer := &bytes.Buffer{}
 			err := s.createStatementLine(writer)
