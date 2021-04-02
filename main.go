@@ -37,6 +37,9 @@ func main() {
 	b := bufio.NewReader(charmap.ISO8859_1.NewDecoder().Reader(csvFile))
 
 	bank := getBank(*bankType, *ingHasCategory)
+	if bank == nil {
+		log.Fatalf("banktype %s not found", *bankType)
+	}
 	bank.ParseCsv(b)
 
 	// create sta file
