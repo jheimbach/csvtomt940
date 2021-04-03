@@ -79,11 +79,15 @@ func SplitStringInParts(s string, l int, trimWhitespace bool) []string {
 	return parts
 }
 
+func IsDebit(amount *money.Money) bool {
+	return amount.IsNegative()
+}
+
 // IsCreditOrDebit returns a C if amount is positive and a D if amount is negative
 func IsCreditOrDebit(amount *money.Money) string {
 	//determine if value is credit or debit
 	credtDebit := "C"
-	if amount.IsNegative() {
+	if IsDebit(amount) {
 		credtDebit = "D"
 	}
 	return credtDebit

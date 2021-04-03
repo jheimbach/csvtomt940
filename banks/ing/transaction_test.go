@@ -101,12 +101,12 @@ func Test_newTransactionFromCSV(t *testing.T) {
 			got, err := newTransactionFromCSV(tt.entry, tt.hasCategory)
 			if tt.wantErr != nil && err != nil {
 				if tt.wantErr.Error() != err.Error() {
-					t.Errorf("moneyStringToInt() error = %v, wantErr %v", err, tt.wantErr)
+					t.Errorf("newTransactionFromCsv() error = %v, wantErr %v", err, tt.wantErr)
 				}
 				return
 			}
 			if err != nil {
-				t.Errorf("moneyStringToInt() error = %v", err)
+				t.Errorf("newTransactionFromCsv() error = %v", err)
 				return
 			}
 			ingTransactionsAreEqual(t, got, tt.want)
