@@ -15,18 +15,18 @@ import (
 const (
 	date int = iota
 	valueDate
-	client
+	payee
 	transactionType
 	category
-	usageLine
+	reference
 	saldo
 	sCurrency
 	amount
 	aCurrency
 )
 
-// GVCCodes returns the GVC Code for the given transactionType, note this list is not complete, other values are possible
-var GVCCodes = map[string]string{
+// gvcCodes returns the GVC Code for the given transactionType, note this list is not complete, other values are possible
+var gvcCodes = map[string]string{
 	"Abschluss":                         "805",
 	"Gutschrift aus Dauerauftrag":       "052",
 	"Abbuchung":                         "004",
@@ -43,10 +43,10 @@ var GVCCodes = map[string]string{
 type ingTransaction struct {
 	date            time.Time
 	valueDate       time.Time
-	client          string
+	payee           string
 	transactionType string
 	category        string
-	usage           string
+	reference       string
 	saldo           *money.Money
 	amount          *money.Money
 }
@@ -94,16 +94,16 @@ func newTransactionFromCSV(entry []string, hasCategory bool) (*ingTransaction, e
 	}
 	bMoney := money.New(int64(bInt), entry[aCurrency+offset])
 
-	cText := entry[client]
+	cText := entry[payee]
 	if len(cText) >= 54 {
 		cText = converter.SplitStringInParts(cText, 54, false)[0]
 	}
 	transaction := &ingTransaction{
 		date:            bT,
 		valueDate:       vT,
-		client:          cText,
+		payee:           cText,
 		transactionType: entry[transactionType],
-		usage:           entry[usageLine+offset],
+		reference:       entry[reference+offset],
 		saldo:           sMoney,
 		amount:          bMoney,
 	}
@@ -136,19 +136,19 @@ func (t *ingTransaction) createSalesLine(writer io.Writer) error {
 // createMultipurposeLine creates :86: line for MT940 from transaction
 func (t *ingTransaction) createMultipurposeLine(writer io.Writer) error {
 
-	gvcCode, ok := GVCCodes[t.transactionType]
+	gvcCode, ok := gvcCodes[t.transactionType]
 	if !ok {
 		return fmt.Errorf("could not find gvc code for text: %s", t.transactionType)
 	}
 
-	c, _ := converter.JoinFieldsWithControl(converter.SplitStringInParts(t.client, 27, true), 32)
-	if t.client == "" {
+	c, _ := converter.JoinFieldsWithControl(converter.SplitStringInParts(t.payee, 27, true), 32)
+	if t.payee == "" {
 		c = ""
 	}
 
-	u, err := converter.ConvertUsageToFields(t.usage)
+	u, err := converter.ConvertUsageToFields(t.reference)
 	if err != nil {
-		return fmt.Errorf("could not convert usage line: %w", err)
+		return fmt.Errorf("could not convert reference line: %w", err)
 	}
 
 	lineStr := fmt.Sprintf("%s?00%s%s%s", gvcCode, converter.ConvertUmlauts(t.transactionType), u, c)

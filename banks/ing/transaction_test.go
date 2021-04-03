@@ -71,9 +71,9 @@ func Test_newTransactionFromCSV(t *testing.T) {
 			want: &ingTransaction{
 				date:            time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
 				valueDate:       time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
-				client:          "test",
+				payee:           "test",
 				transactionType: "test2",
-				usage:           "test3",
+				reference:       "test3",
 				saldo:           money.New(1200, "EUR"),
 				amount:          money.New(500, "EUR"),
 			},
@@ -82,14 +82,14 @@ func Test_newTransactionFromCSV(t *testing.T) {
 		{
 			hasCategory: true,
 			name:        "string fields are set and transaction has category",
-			entry:       []string{"02.01.2000", "02.01.2000", "client", "transactionType", "category", "usage", "12,00", "EUR", "5,00", "EUR"},
+			entry:       []string{"02.01.2000", "02.01.2000", "payee", "transactionType", "category", "reference", "12,00", "EUR", "5,00", "EUR"},
 			want: &ingTransaction{
 				date:            time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
 				valueDate:       time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
-				client:          "client",
+				payee:           "payee",
 				transactionType: "transactionType",
 				category:        "category",
-				usage:           "usage",
+				reference:       "reference",
 				saldo:           money.New(1200, "EUR"),
 				amount:          money.New(500, "EUR"),
 			},
@@ -126,9 +126,9 @@ func Test_ingtransaction_createSalesLine(t1 *testing.T) {
 			transaction: &ingTransaction{
 				date:            time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
 				valueDate:       time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
-				client:          "",
+				payee:           "",
 				transactionType: "",
-				usage:           "",
+				reference:       "",
 				saldo:           nil,
 				amount:          money.New(1050, "EUR"),
 			},
@@ -140,9 +140,9 @@ func Test_ingtransaction_createSalesLine(t1 *testing.T) {
 			transaction: &ingTransaction{
 				date:            time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
 				valueDate:       time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
-				client:          "",
+				payee:           "",
 				transactionType: "",
-				usage:           "",
+				reference:       "",
 				saldo:           nil,
 				amount:          money.New(-1050, "EUR"),
 			},
@@ -154,9 +154,9 @@ func Test_ingtransaction_createSalesLine(t1 *testing.T) {
 			transaction: &ingTransaction{
 				date:            time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
 				valueDate:       time.Date(2000, 01, 01, 0, 0, 0, 0, time.UTC),
-				client:          "",
+				payee:           "",
 				transactionType: "",
-				usage:           "",
+				reference:       "",
 				saldo:           nil,
 				amount:          money.New(-1050, "EUR"),
 			},
@@ -187,13 +187,13 @@ func Test_ingtransaction_createMultipurposeField(t1 *testing.T) {
 		wantErr     bool
 	}{
 		{
-			name: "empty usage line, empty auftraggeber",
+			name: "empty reference line, empty auftraggeber",
 			transaction: &ingTransaction{
 				date:            time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
 				valueDate:       time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
-				client:          "",
+				payee:           "",
 				transactionType: "Lastschrift",
-				usage:           "",
+				reference:       "",
 				saldo:           nil,
 				amount:          nil,
 			},
@@ -201,13 +201,13 @@ func Test_ingtransaction_createMultipurposeField(t1 *testing.T) {
 			wantErr:    false,
 		},
 		{
-			name: "usage line, empty auftraggeber",
+			name: "reference line, empty auftraggeber",
 			transaction: &ingTransaction{
 				date:            time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
 				valueDate:       time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
-				client:          "",
+				payee:           "",
 				transactionType: "Lastschrift",
-				usage:           "test",
+				reference:       "test",
 				saldo:           nil,
 				amount:          nil,
 			},
@@ -215,13 +215,13 @@ func Test_ingtransaction_createMultipurposeField(t1 *testing.T) {
 			wantErr:    false,
 		},
 		{
-			name: "usage line, with auftraggeber",
+			name: "reference line, with auftraggeber",
 			transaction: &ingTransaction{
 				date:            time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
 				valueDate:       time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
-				client:          "testname",
+				payee:           "testname",
 				transactionType: "Lastschrift",
-				usage:           "test",
+				reference:       "test",
 				saldo:           nil,
 				amount:          nil,
 			},
@@ -233,9 +233,9 @@ func Test_ingtransaction_createMultipurposeField(t1 *testing.T) {
 			transaction: &ingTransaction{
 				date:            time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
 				valueDate:       time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
-				client:          "testname",
+				payee:           "testname",
 				transactionType: "Überweisung",
-				usage:           "test",
+				reference:       "test",
 				saldo:           nil,
 				amount:          nil,
 			},
@@ -247,9 +247,9 @@ func Test_ingtransaction_createMultipurposeField(t1 *testing.T) {
 			transaction: &ingTransaction{
 				date:            time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
 				valueDate:       time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
-				client:          "testname",
+				payee:           "testname",
 				transactionType: "Abschuss",
-				usage:           "test",
+				reference:       "test",
 				saldo:           nil,
 				amount:          nil,
 			},
@@ -257,13 +257,13 @@ func Test_ingtransaction_createMultipurposeField(t1 *testing.T) {
 			wantErr:    true,
 		},
 		{
-			name: "usage line is too long",
+			name: "reference line is too long",
 			transaction: &ingTransaction{
 				date:            time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
 				valueDate:       time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
-				client:          "testname",
+				payee:           "testname",
 				transactionType: "Lastschrift",
-				usage:           strings.Repeat("a", 8*27),
+				reference:       strings.Repeat("a", 8*27),
 				saldo:           nil,
 				amount:          nil,
 			},
@@ -275,9 +275,9 @@ func Test_ingtransaction_createMultipurposeField(t1 *testing.T) {
 			transaction: &ingTransaction{
 				date:            time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
 				valueDate:       time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
-				client:          strings.Repeat("testname", 20),
+				payee:           strings.Repeat("testname", 20),
 				transactionType: "Lastschrift",
-				usage:           strings.Repeat("a", 7*27),
+				reference:       strings.Repeat("a", 7*27),
 				saldo:           nil,
 				amount:          nil,
 			},
@@ -289,9 +289,9 @@ func Test_ingtransaction_createMultipurposeField(t1 *testing.T) {
 			transaction: &ingTransaction{
 				date:            time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
 				valueDate:       time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
-				client:          "testname",
+				payee:           "testname",
 				transactionType: "Lastschrift",
-				usage:           strings.Repeat("a", 7*27),
+				reference:       strings.Repeat("a", 7*27),
 				saldo:           nil,
 				amount:          nil,
 			},
@@ -304,13 +304,13 @@ func Test_ingtransaction_createMultipurposeField(t1 *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "long client name",
+			name: "long payee name",
 			transaction: &ingTransaction{
 				date:            time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
 				valueDate:       time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
-				client:          strings.Repeat("b", 53),
+				payee:           strings.Repeat("b", 53),
 				transactionType: "Lastschrift",
-				usage:           strings.Repeat("a", 27),
+				reference:       strings.Repeat("a", 27),
 				saldo:           nil,
 				amount:          nil,
 			},
@@ -350,9 +350,9 @@ func Test_ingtransaction_ConvertTOMT940(t1 *testing.T) {
 			transaction: &ingTransaction{
 				date:            time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
 				valueDate:       time.Date(2000, 01, 02, 0, 0, 0, 0, time.UTC),
-				client:          "testname",
+				payee:           "testname",
 				transactionType: "Abschluss",
-				usage:           "test",
+				reference:       "test",
 				saldo:           money.New(5000, "EUR"),
 				amount:          money.New(-1050, "EUR"),
 			},
@@ -383,8 +383,8 @@ func ingTransactionsAreEqual(t *testing.T, a *ingTransaction, b *ingTransaction)
 	if !a.valueDate.Equal(b.valueDate) {
 		t.Fatalf("valueDate is not equal: %s !== %s", a.valueDate.String(), b.valueDate.String())
 	}
-	if a.client != b.client {
-		t.Fatalf("client is not equal: %s !== %s", a.client, b.client)
+	if a.payee != b.payee {
+		t.Fatalf("payee is not equal: %s !== %s", a.payee, b.payee)
 	}
 	if a.transactionType != b.transactionType {
 		t.Fatalf("transactionType is not equal: %s !== %s", a.transactionType, b.transactionType)
@@ -392,8 +392,8 @@ func ingTransactionsAreEqual(t *testing.T, a *ingTransaction, b *ingTransaction)
 	if a.category != b.category {
 		t.Fatalf("category is not equal: %s !== %s", a.category, b.category)
 	}
-	if a.usage != b.usage {
-		t.Fatalf("usage is not equal: %s !== %s", a.usage, b.usage)
+	if a.reference != b.reference {
+		t.Fatalf("reference is not equal: %s !== %s", a.reference, b.reference)
 	}
 	if ok, _ := a.saldo.Equals(b.saldo); !ok {
 		t.Fatalf("saldo is not equal: %s !== %s", a.saldo.Display(), b.saldo.Display())
