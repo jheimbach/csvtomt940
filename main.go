@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/JHeimbach/csvtomt940/banks/ing"
+	"github.com/JHeimbach/csvtomt940/banks/n26"
 	"github.com/JHeimbach/csvtomt940/mt940"
-	"golang.org/x/text/encoding/charmap"
 )
 
 func usage(programName string) string {
@@ -20,6 +20,8 @@ func usage(programName string) string {
 func main() {
 	var ingHasCategory = flag.Bool("ing-has-category", true, "Set to false when ing csv has no category column")
 	var bankType = flag.String("bank-type", "ing", "Which converter should be used (available options: ing, n26")
+	var n26Iban = flag.String("n26-iban", "", "N26 does not save iban in csv export, you have to provide it yourself")
+
 	flag.Parse()
 	// if no file is given, return usage message
 	if len(os.Args) < 2 {
@@ -33,14 +35,11 @@ func main() {
 	}
 	defer csvFile.Close()
 
-	// convert to utf8 because ing-diba encodes in ISO8859-1
-	b := bufio.NewReader(charmap.ISO8859_1.NewDecoder().Reader(csvFile))
-
-	bank := getBank(*bankType, *ingHasCategory)
-	if bank == nil {
-		log.Fatalf("banktype %s not found", *bankType)
+	bank, err := getBank(*bankType, *ingHasCategory, *n26Iban)
+	if err != nil {
+		log.Fatal(err)
 	}
-	bank.ParseCsv(b)
+	bankInfos := bank.ParseCsv(csvFile)
 
 	// create sta file
 	staFileName := strings.ReplaceAll(csvFileName, ".csv", ".sta")
@@ -49,7 +48,7 @@ func main() {
 		log.Fatalf("could not create file: %s: %v ", staFileName, err)
 	}
 
-	err = bank.ConvertToMT940(staFile)
+	err = bankInfos.ConvertToMT940(staFile)
 	if err != nil {
 		log.Fatalf("could not convert to MT940: %v", err)
 	}
@@ -61,14 +60,23 @@ func main() {
 	log.Println("done")
 }
 
-func getBank(bankType string, ingHasCategory bool) mt940.Bank {
+func getBank(bankType string, ingHasCategory bool, iban string) (mt940.Bank, error) {
 	switch bankType {
 	case "ing":
 		{
 			return &ing.Ing{
 				HasCategory: ingHasCategory,
+			}, nil
+		}
+	case "n26":
+		{
+			if iban == "" {
+				return nil, errors.New("parser for N26 need iban provided")
 			}
+			return &n26.N26{
+				Iban: iban,
+			}, nil
 		}
 	}
-	return nil
+	return nil, fmt.Errorf("bank \"%s\" not supported", bankType)
 }

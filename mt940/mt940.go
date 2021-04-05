@@ -1,22 +1,21 @@
 package mt940
 
 import (
-	"bufio"
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/JHeimbach/csvtomt940/converter"
 	"github.com/JHeimbach/csvtomt940/formatter"
 )
 
-// MT940Converter converts csv transactions into the MT940 format
-type MT940Converter interface {
+// Converter converts csv transactions into the MT940 format
+type Converter interface {
 	ConvertToMT940(writer io.Writer) error
 }
 
 type Bank interface {
-	MT940Converter
-	ParseCsv(b *bufio.Reader) *BankData
+	ParseCsv(csvFile *os.File) *BankData
 }
 
 // swiftTransactions creates a MT940 statement from given transactions

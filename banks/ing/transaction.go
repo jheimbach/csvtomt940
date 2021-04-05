@@ -116,8 +116,8 @@ func newTransactionFromCSV(entry []string, hasCategory bool) (*ingTransaction, e
 
 //createSalesLine creates :61: line for MT940 from transaction
 func (t *ingTransaction) createSalesLine(writer io.Writer) error {
-	// :61:<ValueDate><Date><IsCreditOrDebit><Amount>
-	// :61:_YYMMDD_MMDD_CD_00,00NTRFNONREF
+	// :61:<ValueDate><Date><IsCreditOrDebit><Amount>NTRFNONREF
+	// :61:_YYMMDD_MMDD_C/D_00,00NTRFNONREF
 	_, err := writer.Write(
 		[]byte(fmt.Sprintf(":61:%s%s%s%sNTRFNONREF\r\n",
 			t.valueDate.Format("060102"),

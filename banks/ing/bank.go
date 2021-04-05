@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"encoding/csv"
 	"fmt"
-	"io"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/JHeimbach/csvtomt940/mt940"
+	"golang.org/x/text/encoding/charmap"
 )
 
 type Ing struct {
@@ -16,7 +17,9 @@ type Ing struct {
 	data        *mt940.BankData
 }
 
-func (i *Ing) ParseCsv(b *bufio.Reader) *mt940.BankData {
+func (i *Ing) ParseCsv(csvFile *os.File) *mt940.BankData {
+	// convert to utf8 because ing-diba encodes in ISO8859-1
+	b := bufio.NewReader(charmap.ISO8859_1.NewDecoder().Reader(csvFile))
 	// extract the first 14 lines from the reader, thats the meta infos
 	meta, err := extractMetaFields(b)
 	if err != nil {
@@ -55,11 +58,6 @@ func (i *Ing) ParseCsv(b *bufio.Reader) *mt940.BankData {
 	i.data.Transactions = ta
 
 	return i.data
-}
-
-func (i *Ing) ConvertToMT940(w io.Writer) error {
-	// convert data to mt940 format
-	return i.data.ConvertToMT940(w)
 }
 
 // extractMetaFields removes and returns the first 15 lines from the csv content,
