@@ -60,10 +60,10 @@ func (i *Ing) ParseCsv(csvFile *os.File) *mt940.BankData {
 	return i.data
 }
 
-// extractMetaFields removes and returns the first 15 lines from the csv content,
+// extractMetaFields removes and returns the first 14 lines from the csv content,
 // that are in case of the ing-Diba meta fields that are no data and only infos about the sheet
 func extractMetaFields(b *bufio.Reader) ([]string, error) {
-	var meta = make([]string, 0, 14)
+	var meta = make([]string, 0, 13)
 	for i := 0; i < 14; i++ {
 		line, err := b.ReadString('\n')
 		if err != nil {
@@ -79,7 +79,7 @@ func extractMetaFields(b *bufio.Reader) ([]string, error) {
 // getAccountNumber returns blz and accountNumber from meta tags of the ING csv
 func getAccountNumber(meta []string) (string, string) {
 	// get iban line and split it, iban is in the second row
-	iban := strings.Split(meta[2], ";")[1]
+	iban := strings.Split(meta[1], ";")[1]
 	// replace all whitespaces
 	iban = strings.ReplaceAll(iban, " ", "")
 	// blz begins in position 4 and has 8 chars
