@@ -21,6 +21,7 @@ func main() {
 	var ingHasCategory = flag.Bool("ing-has-category", true, "Set to false when ing csv has no category column")
 	var bankType = flag.String("bank-type", "ing", "Which converter should be used (available options: ing, n26")
 	var n26Iban = flag.String("n26-iban", "", "N26 does not save iban in csv export, you have to provide it yourself")
+	var n26StartSaldo = flag.Int64("n26-start-saldo", 0, "N26 does not save saldo infos in csv export, you have to provide the startsaldo yourself, in cents e.g. 10,45€ = 1045")
 
 	flag.Parse()
 	// if no file is given, return usage message
@@ -35,7 +36,7 @@ func main() {
 	}
 	defer csvFile.Close()
 
-	bank, err := getBank(*bankType, *ingHasCategory, *n26Iban)
+	bank, err := getBank(*bankType, *ingHasCategory, *n26Iban, *n26StartSaldo)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -60,7 +61,7 @@ func main() {
 	log.Println("done")
 }
 
-func getBank(bankType string, ingHasCategory bool, iban string) (mt940.Bank, error) {
+func getBank(bankType string, ingHasCategory bool, iban string, saldo int64) (mt940.Bank, error) {
 	switch bankType {
 	case "ing":
 		{
@@ -71,10 +72,14 @@ func getBank(bankType string, ingHasCategory bool, iban string) (mt940.Bank, err
 	case "n26":
 		{
 			if iban == "" {
-				return nil, errors.New("parser for N26 need iban provided")
+				return nil, errors.New("parser for N26 needs iban provided")
+			}
+			if saldo == 0 {
+				log.Println("WARNING: N26 has no Saldo in its transaction statements, do you mean to start with saldo = 0?")
 			}
 			return &n26.N26{
-				Iban: iban,
+				Iban:       iban,
+				StartSaldo: saldo,
 			}, nil
 		}
 	}

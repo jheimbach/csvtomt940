@@ -11,8 +11,9 @@ import (
 )
 
 type N26 struct {
-	Iban string
-	data *mt940.BankData
+	Iban       string
+	StartSaldo int64
+	data       *mt940.BankData
 }
 
 func (n *N26) ParseCsv(csvFile *os.File) *mt940.BankData {
@@ -38,7 +39,7 @@ func (n *N26) ParseCsv(csvFile *os.File) *mt940.BankData {
 	if err != nil {
 		log.Fatalf("could not read data from csv %v", err)
 	}
-	saldo := money.New(0, "EUR")
+	saldo := money.New(n.StartSaldo, "EUR")
 	// create ingTransaction structs
 	var ta = make([]mt940.Transaction, 0, len(transactions))
 	for j, t := range transactions {
