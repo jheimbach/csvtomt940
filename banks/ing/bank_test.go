@@ -57,7 +57,7 @@ func Test_extractMetaFields(t *testing.T) {
 		{
 			name:    "with breaklines",
 			input:   strings.Repeat("1\n", 15),
-			want:    []string{"1\n", "1\n", "1\n", "1\n", "1\n", "1\n", "1\n", "1\n", "1\n", "1\n", "1\n", "1\n", "1\n", "1\n"},
+			want:    []string{"1\n", "1\n", "1\n", "1\n", "1\n", "1\n", "1\n", "1\n", "1\n", "1\n", "1\n", "1\n", "1\n"},
 			wantErr: false,
 		},
 		{

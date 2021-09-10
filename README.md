@@ -13,7 +13,7 @@ To install you have to have [go](https://golang.org/) installed on your machine.
 Install it via go get:
 
 ```shell
-go get github.com/jheimbach/csvtomt940
+go get github.com/JHeimbach/csvtomt940
 ```
 
 ## Usage
@@ -30,6 +30,7 @@ It will produce a .sta file with the same name as the given .csv file
 |`-ing-has-category`| `true` | Use this if you want to use this converter with the old csv files from ing (that don't have a category entry), set this flag to false |
 |`-bank-type`| `ing`| this program can convert the csv from ing and n26 bank|
 |`-n26-iban`| `<none>` | n26 csv export does not include the account iban, but mt940 needs this, please provide your iban with this option
+|`-n26-start-saldo`| `<none>` | n26 csv export does not include saldo infos, but mt940 needs this, please provide your startsaldo with this option in cents (e.g. 150,34€ is 15034)
 
 ## Example CSVs
 

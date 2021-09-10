@@ -64,7 +64,7 @@ func (i *Ing) ParseCsv(csvFile *os.File) *mt940.BankData {
 // that are in case of the ing-Diba meta fields that are no data and only infos about the sheet
 func extractMetaFields(b *bufio.Reader) ([]string, error) {
 	var meta = make([]string, 0, 13)
-	for i := 0; i < 14; i++ {
+	for i := 0; i < 13; i++ {
 		line, err := b.ReadString('\n')
 		if err != nil {
 			return nil, fmt.Errorf("could not read line %d: %w", i, err)
