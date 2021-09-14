@@ -36,7 +36,7 @@ func Test_getAccountNumber(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			bankNumber, accountNumber := getAccountNumber(tt.args.meta)
+			bankNumber, accountNumber, _ := getAccountNumber(tt.args.meta)
 			if bankNumber != tt.bankNumber {
 				t.Errorf("getAccountNumber() bankNumber = %v, accountNumber %v", bankNumber, tt.bankNumber)
 			}

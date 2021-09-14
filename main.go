@@ -65,9 +65,7 @@ func getBank(bankType string, ingHasCategory bool, iban string, saldo int64) (mt
 	switch bankType {
 	case "ing":
 		{
-			return &ing.Ing{
-				HasCategory: ingHasCategory,
-			}, nil
+			return ing.New(ingHasCategory), nil
 		}
 	case "n26":
 		{
@@ -77,10 +75,7 @@ func getBank(bankType string, ingHasCategory bool, iban string, saldo int64) (mt
 			if saldo == 0 {
 				log.Println("WARNING: N26 has no Saldo in its transaction statements, do you mean to start with saldo = 0?")
 			}
-			return &n26.N26{
-				Iban:       iban,
-				StartSaldo: saldo,
-			}, nil
+			return n26.New(iban, saldo), nil
 		}
 	}
 	return nil, fmt.Errorf("bank \"%s\" not supported", bankType)
