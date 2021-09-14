@@ -1,8 +1,8 @@
 # CSV to MT940
-Converter for CSV to MT940
+Convert CSV Bank Statement exports from ing (ing.de) or n26 to mt940 format.
 
 I needed a converter for my banking statements from an ing account. 
-ing does not offer a mt940 download so i wrote my own converter. 
+ing does not offer a mt940 download, so I wrote my own converter. 
 I do not guarantee it will work with your statements! 
 
 If you have any problems please create an issue or a pull request
@@ -17,9 +17,15 @@ go get github.com/JHeimbach/csvtomt940
 ```
 
 ## Usage
-To run the converter run:
+run the converter with:
 ```shell
-csvtomt940 SourceFile.csv
+csvtomt940 sourcefile.csv
+```
+
+If you want to run with flags, make sure to add them in front of the csv file e.g:
+
+```shell
+csvtomt940 -bank-type n26 -n26-iban DEXXXX --n26-start-saldo XXXX sourcefile.csv
 ```
 
 It will produce a .sta file with the same name as the given .csv file
