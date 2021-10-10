@@ -31,6 +31,7 @@ var gvcCodes = map[string]string{
 	"Outgoing Transfer":         "020",
 	"Überweisung":               "020",
 	"Lastschrift":               "005",
+	"Direct Debit":              "005",
 	"MasterCard Payment Credit": "051", // incoming payments to credit card
 	"MasterCard Zahlung Credit": "051",
 	"MasterCard Payment Debit":  "004", // outgoing payments to credit card
