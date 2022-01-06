@@ -11,20 +11,22 @@ import (
 )
 
 type N26 struct {
-	Iban       string
-	StartSaldo int64
-	logger     *log.Logger
-	data       *mt940.BankData
+	Iban        string
+	StartSaldo  int64
+	HasCategory bool
+	logger      *log.Logger
+	data        *mt940.BankData
 }
 
-func New(iban string, startSaldo int64) *N26 {
+func New(iban string, startSaldo int64, hasCategory bool) *N26 {
 
 	logger := log.New(os.Stdout, "[N26] ", log.Lmsgprefix)
 
 	return &N26{
-		logger:     logger,
-		Iban:       iban,
-		StartSaldo: startSaldo,
+		logger:      logger,
+		Iban:        iban,
+		StartSaldo:  startSaldo,
+		HasCategory: hasCategory,
 	}
 }
 
@@ -55,7 +57,7 @@ func (n *N26) ParseCsv(csvFile *os.File) *mt940.BankData {
 	// create ingTransaction structs
 	var ta = make([]mt940.Transaction, 0, len(transactions))
 	for j, t := range transactions {
-		ts, nSaldo, err := newTransactionFromCsv(t, saldo)
+		ts, nSaldo, err := newTransactionFromCsv(t, saldo, n.HasCategory)
 		if err != nil {
 			log.Fatalf("could not convert entry to struct in line %d: %v", j, err)
 		}

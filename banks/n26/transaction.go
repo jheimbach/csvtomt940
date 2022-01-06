@@ -61,14 +61,18 @@ func (n *n26Transaction) Date() time.Time {
 	return n.date
 }
 
-func newTransactionFromCsv(entry []string, startSaldo *money.Money) (*n26Transaction, *money.Money, error) {
+func newTransactionFromCsv(entry []string, startSaldo *money.Money, hasCategory bool) (*n26Transaction, *money.Money, error) {
+	var offset = 0
+	if !hasCategory {
+		offset = -1
+	}
 
 	tDate, err := time.Parse("2006-01-02", entry[date])
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not parse date from %s: %w", entry[date], err)
 	}
 
-	tAmount, err := converter.MoneyStringToInt(getAmount(entry[amount]))
+	tAmount, err := converter.MoneyStringToInt(getAmount(entry[amount+offset]))
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not parse amount to int: %w", err)
 	}
