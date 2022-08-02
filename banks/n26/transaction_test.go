@@ -97,7 +97,7 @@ func Test_newTransactionFromCSV(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, _, err := newTransactionFromCsv(tt.entry, money.New(0, "EUR"))
+			got, _, err := newTransactionFromCsv(tt.entry, money.New(0, "EUR"), true)
 			if tt.wantErr != nil && err != nil {
 				if tt.wantErr.Error() != err.Error() {
 					t.Errorf("newTransactionFromCsv() got error:\n%v\n, wanted error:\n%v\n", err, tt.wantErr)
@@ -208,7 +208,7 @@ func Test_newTransactionFromCSV_CalculatesSaldoCorrect(t *testing.T) {
 			var startSaldo = tt.startSaldo
 			var transactions = make([]*n26Transaction, 0, len(tt.want))
 			for _, entry := range tt.entry {
-				got, gotSaldo, err := newTransactionFromCsv(entry, startSaldo)
+				got, gotSaldo, err := newTransactionFromCsv(entry, startSaldo, true)
 				if err != nil {
 					t.Errorf("newTransactionFromCsv() error = %v", err)
 					return
