@@ -7,7 +7,31 @@ I do not guarantee it will work with your statements!
 
 If you have any problems please create an issue or a pull request
 
-## Install
+## Use Docker image
+```shell
+docker run --rm -it -v "$(pwd):/app" jheimbach/csvtomt940:latest [flags] sourcefile.csv
+```
+
+
+Note: docker creates files with root permissions, if this is a problem, simply run docker as a different user with
+(User ID 1000 is the default linux user, check the `id` command which id is used for your account)
+```shell
+docker run --rm -it -u 1000:1000 -v "$(pwd):/app" jheimbach/csvtomt940:latest [flags] sourcefile.csv
+```
+
+## Use Release Builds
+### Install
+1. Download the latest Build from [Release Page](https://github.com/JHeimbach/csvtomt940/releases/latest)
+2. extract the archive
+   1. Optional: Move csvtomt940 executable to location in $PATH (e.g. `/usr/local/bin`)
+### Usage
+```bash
+/path/to/csvtomt940 [flags] sourcefile.csv
+```
+
+## Use from Source code
+
+### Install
 To install you have to have [go](https://golang.org/) installed on your machine.
 
 Install it via go get:
@@ -16,7 +40,7 @@ Install it via go get:
 go get github.com/JHeimbach/csvtomt940
 ```
 
-## Usage
+### Usage
 run the converter with:
 ```shell
 csvtomt940 sourcefile.csv
@@ -31,12 +55,13 @@ csvtomt940 -bank-type n26 -n26-iban DEXXXX --n26-start-saldo XXXX sourcefile.csv
 It will produce a .sta file with the same name as the given .csv file
 
 ## Flags
-| name | default| usage|
-|---|---|---|
-|`-ing-has-category`| `true` | Use this if you want to use this converter with the old csv files from ing (that don't have a category entry), set this flag to false |
-|`-bank-type`| `ing`| this program can convert the csv from ing and n26 bank|
-|`-n26-iban`| `<none>` | n26 csv export does not include the account iban, but mt940 needs this, please provide your iban with this option
-|`-n26-start-saldo`| `<none>` | n26 csv export does not include saldo infos, but mt940 needs this, please provide your startsaldo with this option in cents (e.g. 150,34€ is 15034)
+| name                | default  | required                | usage                                                                                                                                                                                                                                |
+|---------------------|----------|-------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `-ing-has-category` | `true`   | No                      | _[DEPRECATED] - use has-category instead_ <br/>Set to false when ing csv has no category columnUse this if you want to use this converter with the old csv files from ing (that don't have a category entry), set this flag to false |
+| `-has-category`     | `true`   | No                      | Use this if you want to use this converter with csv files that include a category column                                                                                                                                             |
+| `-bank-type`        | `ing`    | Yes                     | this program can convert the csv from ing and n26 bank                                                                                                                                                                               |
+| `-n26-iban`         | `<none>` | if `bank-type` is `n26` | n26 csv export does not include the account iban, but mt940 needs this, please provide your iban with this option                                                                                                                    |
+| `-n26-start-saldo`  | `<none>` | if `bank-type` is `n26` | n26 csv export does not include saldo infos, but mt940 needs this, please provide your startsaldo with this option in cents (e.g. 150,34€ is 15034)                                                                                  |
 
 ## Example CSVs
 
