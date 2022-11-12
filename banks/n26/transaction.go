@@ -36,7 +36,8 @@ var gvcCodes = map[string]string{
 	"MasterCard Zahlung Credit": "051",
 	"MasterCard Payment Debit":  "004", // outgoing payments to credit card
 	"MasterCard Zahlung Debit":  "004",
-	"N26 Empfehlung":            "051",
+	"N26 Empfehlung":            "051", // N26 Cashback
+	"N26 Referral":              "051",
 }
 
 type n26Transaction struct {

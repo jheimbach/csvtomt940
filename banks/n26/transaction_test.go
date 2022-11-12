@@ -94,6 +94,21 @@ func Test_newTransactionFromCSV(t *testing.T) {
 			},
 			wantErr: nil,
 		},
+		{
+			name:  "referral program is credit",
+			entry: []string{"2000-01-02", "test", "test2", "N26 Empfehlung", "reference", "Salary", "-12.00", "", "", ""},
+			want: &n26Transaction{
+				date:                  time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
+				payee:                 "test",
+				transactionType:       "N26 Empfehlung",
+				transactionTypeLookup: "N26 Empfehlung",
+				reference:             "reference",
+				category:              "Salary",
+				saldo:                 money.New(-1200, "EUR"),
+				amount:                money.New(-1200, "EUR"),
+			},
+			wantErr: nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -108,7 +123,7 @@ func Test_newTransactionFromCSV(t *testing.T) {
 				t.Errorf("newTransactionFromCsv() error = %v", err)
 				return
 			}
-			ingTransactionsAreEqual(t, got, tt.want)
+			transactionsAreEqual(t, got, tt.want)
 		})
 	}
 }
@@ -217,13 +232,13 @@ func Test_newTransactionFromCSV_CalculatesSaldoCorrect(t *testing.T) {
 				transactions = append(transactions, got)
 			}
 			for i, want := range tt.want {
-				ingTransactionsAreEqual(t, transactions[i], want)
+				transactionsAreEqual(t, transactions[i], want)
 			}
 		})
 	}
 }
 
-func ingTransactionsAreEqual(t *testing.T, a *n26Transaction, b *n26Transaction) {
+func transactionsAreEqual(t *testing.T, a *n26Transaction, b *n26Transaction) {
 	t.Helper()
 	if !a.date.Equal(b.date) {
 		t.Fatalf("date is not equal: %s !== %s", a.date.String(), b.date.String())
@@ -246,9 +261,12 @@ func ingTransactionsAreEqual(t *testing.T, a *n26Transaction, b *n26Transaction)
 	if ok, _ := a.amount.Equals(b.amount); !ok {
 		t.Fatalf("amount is not equal: %s !== %s", a.amount.Display(), b.amount.Display())
 	}
+	if _, ok := gvcCodes[b.transactionTypeLookup]; b.transactionTypeLookup != "" && !ok {
+		t.Fatalf("transactionType is not in gvcCodes List")
+	}
 }
 
-func Test_ingtransaction_ConvertTOMT940(t1 *testing.T) {
+func Test_n26transaction_ConvertTOMT940(t1 *testing.T) {
 	tests := []struct {
 		name        string
 		transaction *n26Transaction
@@ -285,7 +303,7 @@ func Test_ingtransaction_ConvertTOMT940(t1 *testing.T) {
 	}
 }
 
-func Test_ingtransaction_createSalesLine(t1 *testing.T) {
+func Test_n26transaction_createSalesLine(t1 *testing.T) {
 	tests := []struct {
 		name        string
 		transaction *n26Transaction
@@ -334,7 +352,7 @@ func Test_ingtransaction_createSalesLine(t1 *testing.T) {
 	}
 }
 
-func Test_ingtransaction_createMultipurposeField(t1 *testing.T) {
+func Test_n26transaction_createMultipurposeField(t1 *testing.T) {
 	tests := []struct {
 		name        string
 		transaction *n26Transaction
