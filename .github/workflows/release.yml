@@ -23,8 +23,6 @@ jobs:
         with:
           go-version: '>=1.19.3'
           cache: true
-      # More assembly might be required: Docker logins, GPG, etc. It all depends
-      # on your needs.
       - uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
