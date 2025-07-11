@@ -18,10 +18,26 @@ func ConvertUmlauts(s string) string {
 }
 
 // MoneyStringToInt converts formatted number to int, it removes every , and . and tries to parse the remaining string to a number
+// If no decimal places are found, it assumes the value is in whole currency units (e.g., "20" = 20.00)
 func MoneyStringToInt(m string) (int, error) {
 	if m == "" {
 		return 0, nil
 	}
+
+	// Check if the string contains decimal separators
+	hasComma := strings.Contains(m, ",")
+	hasDot := strings.Contains(m, ".")
+
+	if !hasComma && !hasDot {
+		// No decimal separator found, assume whole currency units
+		// Convert to cents by multiplying by 100
+		val, err := strconv.Atoi(m)
+		if err != nil {
+			return 0, err
+		}
+		return val * 100, nil
+	}
+
 	m = strings.ReplaceAll(m, ",", "")
 	m = strings.ReplaceAll(m, ".", "")
 	return strconv.Atoi(m)
