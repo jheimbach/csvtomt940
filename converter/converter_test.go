@@ -117,6 +117,30 @@ func Test_moneyStringToInt(t *testing.T) {
 			want:    0,
 			wantErr: true,
 		},
+		{
+			name: "whole number without decimal",
+			args: args{
+				m: "20",
+			},
+			want:    2000,
+			wantErr: false,
+		},
+		{
+			name: "negative whole number without decimal",
+			args: args{
+				m: "-20",
+			},
+			want:    -2000,
+			wantErr: false,
+		},
+		{
+			name: "zero without decimal",
+			args: args{
+				m: "0",
+			},
+			want:    0,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
