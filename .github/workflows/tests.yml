@@ -1,14 +1,17 @@
 name: Tests
-on: [push]
+on:
+  push:
+  pull_request:
+
 jobs:
   tests:
     name: All Tests
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go 1.16
+      - name: Set up Go
         uses: actions/setup-go@v1
         with:
-          go-version: 1.16
+          go-version: 1.24
         id: go
 
       - name: Check out code into the Go module directory
