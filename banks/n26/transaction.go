@@ -28,8 +28,11 @@ const (
 var gvcCodes = map[string]string{
 	"Income":                    "051",
 	"Gutschrift":                "051",
+	"Credit Transfer":           "051",
 	"Outgoing Transfer":         "020",
 	"Überweisung":               "020",
+	"Debit Transfer":            "020",
+	"Presentment":               "020",
 	"Lastschrift":               "005",
 	"Direct Debit":              "005",
 	"MasterCard Payment Credit": "051", // incoming payments to credit card
@@ -37,7 +40,10 @@ var gvcCodes = map[string]string{
 	"MasterCard Payment Debit":  "004", // outgoing payments to credit card
 	"MasterCard Zahlung Debit":  "004",
 	"N26 Empfehlung":            "051", // N26 Cashback
+	"Reward":                    "051",
 	"N26 Referral":              "051",
+	"Fee":                       "808",
+	"Presentment Refund":        "059",
 }
 
 type n26Transaction struct {
