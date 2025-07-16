@@ -95,6 +95,23 @@ func Test_newTransactionFromCSV(t *testing.T) {
 			},
 			wantErr: nil,
 		},
+		{
+			name: "without category",
+			entry: []string{
+				"08.02.2021", "08.02.2021", "Yabox", "Lastschrift", "Reactive full-range local area network", "1188,32", "EUR", "-1,62", "EUR",
+			},
+			hasCategory: false,
+			want: &ingTransaction{
+				date:            time.Date(2021, 02, 8, 0, 0, 0, 0, time.UTC),
+				valueDate:       time.Date(2021, 02, 8, 0, 0, 0, 0, time.UTC),
+				payee:           "Yabox",
+				transactionType: "Lastschrift",
+				reference:       "Reactive full-range local area network",
+				category:        "",
+				saldo:           money.New(118832, "EUR"),
+				amount:          money.New(-162, "EUR"),
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -336,8 +353,8 @@ func Test_ingtransaction_createMultipurposeField(t1 *testing.T) {
 	}
 }
 
-//":86:005?00Lastschrift?20SVWZ+aaaaaaaaaaaaaaaaaaaaaa?21aaaaa?22KREF+NO\r\nNREF?32bbbbbbbbbbbbbbbbbbbbbbbbbbb?33bbbbbbbbbbbbbbbbbbbbbbbbbb\r\n"
-//":86:005?00Lastschrift?20SVWZ+aaaaaaaaaaaaaaaaaaaaaa?21aaaaa?28KREF+NO\r\nNREF?32bbbbbbbbbbbbbbbbbbbbbbbbbbb?33bbbbbbbbbbbbbbbbbbbbbbbbbb\r\n"
+// ":86:005?00Lastschrift?20SVWZ+aaaaaaaaaaaaaaaaaaaaaa?21aaaaa?22KREF+NO\r\nNREF?32bbbbbbbbbbbbbbbbbbbbbbbbbbb?33bbbbbbbbbbbbbbbbbbbbbbbbbb\r\n"
+// ":86:005?00Lastschrift?20SVWZ+aaaaaaaaaaaaaaaaaaaaaa?21aaaaa?28KREF+NO\r\nNREF?32bbbbbbbbbbbbbbbbbbbbbbbbbbb?33bbbbbbbbbbbbbbbbbbbbbbbbbb\r\n"
 func Test_ingtransaction_ConvertTOMT940(t1 *testing.T) {
 	tests := []struct {
 		name        string

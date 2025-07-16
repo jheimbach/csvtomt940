@@ -106,12 +106,17 @@ func newTransactionFromCsv(entry []string, startSaldo *money.Money, hasCategory 
 		return nil, nil, fmt.Errorf("could not add startsaldo to amount: %w", err)
 	}
 
+	entryCategory := ""
+	if hasCategory {
+		entryCategory = entry[category]
+	}
+
 	transaction := &n26Transaction{
 		date:                  tDate,
 		payee:                 payeeText,
 		transactionType:       tType,
 		transactionTypeLookup: ttLookup,
-		category:              entry[category],
+		category:              entryCategory,
 		reference:             entry[reference],
 		saldo:                 saldo,
 		amount:                tAmountMoney,

@@ -13,14 +13,16 @@ import (
 
 func Test_newTransactionFromCSV(t *testing.T) {
 	tests := []struct {
-		name    string
-		entry   []string
-		want    *n26Transaction
-		wantErr error
+		name         string
+		entry        []string
+		withCategory bool
+		want         *n26Transaction
+		wantErr      error
 	}{
 		{
-			name:  "time is valid",
-			entry: []string{"2000-01-02", "", "", "", "", "", "", "", "", ""},
+			name:         "time is valid",
+			entry:        []string{"2000-01-02", "", "", "", "", "", "", "", "", ""},
+			withCategory: true,
 			want: &n26Transaction{
 				date:   time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
 				saldo:  money.New(0, "EUR"),
@@ -29,14 +31,16 @@ func Test_newTransactionFromCSV(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name:    "time is invalid",
-			entry:   []string{"2000-0102", "", "", "", "", "", "", "", "", ""},
-			want:    nil,
-			wantErr: fmt.Errorf("could not parse date from 2000-0102: %w", errors.New("parsing time \"2000-0102\" as \"2006-01-02\": cannot parse \"02\" as \"-\"")),
+			name:         "time is invalid",
+			entry:        []string{"2000-0102", "", "", "", "", "", "", "", "", ""},
+			withCategory: true,
+			want:         nil,
+			wantErr:      fmt.Errorf("could not parse date from 2000-0102: %w", errors.New("parsing time \"2000-0102\" as \"2006-01-02\": cannot parse \"02\" as \"-\"")),
 		},
 		{
-			name:  "both money values are valid",
-			entry: []string{"2000-01-02", "", "", "", "", "", "12.00", "", "", ""},
+			name:         "both money values are valid",
+			entry:        []string{"2000-01-02", "", "", "", "", "", "12.00", "", "", ""},
+			withCategory: true,
 			want: &n26Transaction{
 				date:   time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
 				saldo:  money.New(1200, "EUR"),
@@ -45,14 +49,16 @@ func Test_newTransactionFromCSV(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name:    "amount money is invalid",
-			entry:   []string{"2000-01-02", "", "", "", "", "", "12-00", "", "", ""},
-			want:    nil,
-			wantErr: fmt.Errorf("could not parse amount to int: %w", errors.New("strconv.Atoi: parsing \"12-00\": invalid syntax")),
+			name:         "amount money is invalid",
+			entry:        []string{"2000-01-02", "", "", "", "", "", "12-00", "", "", ""},
+			withCategory: true,
+			want:         nil,
+			wantErr:      fmt.Errorf("could not parse amount to int: %w", errors.New("strconv.Atoi: parsing \"12-00\": invalid syntax")),
 		},
 		{
-			name:  "string fields are set",
-			entry: []string{"2000-01-02", "test", "test2", "Income", "reference", "Salary", "12.00", "", "", ""},
+			name:         "string fields are set",
+			entry:        []string{"2000-01-02", "test", "test2", "Income", "reference", "Salary", "12.00", "", "", ""},
+			withCategory: true,
 			want: &n26Transaction{
 				date:            time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
 				payee:           "test",
@@ -65,8 +71,9 @@ func Test_newTransactionFromCSV(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name:  "creditcard payment is credit",
-			entry: []string{"2000-01-02", "test", "test2", "MasterCard Payment", "reference", "Salary", "12.00", "", "", ""},
+			name:         "creditcard payment is credit",
+			entry:        []string{"2000-01-02", "test", "test2", "MasterCard Payment", "reference", "Salary", "12.00", "", "", ""},
+			withCategory: true,
 			want: &n26Transaction{
 				date:                  time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
 				payee:                 "test",
@@ -80,8 +87,9 @@ func Test_newTransactionFromCSV(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name:  "creditcard payment is debit",
-			entry: []string{"2000-01-02", "test", "test2", "MasterCard Payment", "reference", "Salary", "-12.00", "", "", ""},
+			name:         "creditcard payment is debit",
+			entry:        []string{"2000-01-02", "test", "test2", "MasterCard Payment", "reference", "Salary", "-12.00", "", "", ""},
+			withCategory: true,
 			want: &n26Transaction{
 				date:                  time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
 				payee:                 "test",
@@ -95,8 +103,9 @@ func Test_newTransactionFromCSV(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name:  "referral program is credit",
-			entry: []string{"2000-01-02", "test", "test2", "N26 Empfehlung", "reference", "Salary", "-12.00", "", "", ""},
+			name:         "referral program is credit",
+			entry:        []string{"2000-01-02", "test", "test2", "N26 Empfehlung", "reference", "Salary", "-12.00", "", "", ""},
+			withCategory: true,
 			want: &n26Transaction{
 				date:                  time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
 				payee:                 "test",
@@ -109,10 +118,44 @@ func Test_newTransactionFromCSV(t *testing.T) {
 			},
 			wantErr: nil,
 		},
+		{
+			name: "with category",
+			entry: []string{
+				"2021-02-08", "Yabox", "DE00111111110000000000", "Income", "Grass-roots systemic pricing structure", "Medien & Elektronik", "16.2", "", "", "",
+			},
+			withCategory: true,
+			want: &n26Transaction{
+				date:                  time.Date(2021, 02, 8, 0, 0, 0, 0, time.UTC),
+				payee:                 "Yabox",
+				transactionType:       "Income",
+				transactionTypeLookup: "Income",
+				reference:             "Grass-roots systemic pricing structure",
+				category:              "Medien & Elektronik",
+				saldo:                 money.New(1620, "EUR"),
+				amount:                money.New(1620, "EUR"),
+			},
+		},
+		{
+			name: "without category",
+			entry: []string{
+				"2021-02-08", "Yabox", "", "Outgoing Transfer", "Grass-roots systemic pricing structure", "-1.62", "", "", "",
+			},
+			withCategory: false,
+			want: &n26Transaction{
+				date:                  time.Date(2021, 02, 8, 0, 0, 0, 0, time.UTC),
+				payee:                 "Yabox",
+				transactionType:       "Outgoing Transfer",
+				transactionTypeLookup: "Outgoing Transfer",
+				reference:             "Grass-roots systemic pricing structure",
+				category:              "",
+				saldo:                 money.New(-162, "EUR"),
+				amount:                money.New(-162, "EUR"),
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, _, err := newTransactionFromCsv(tt.entry, money.New(0, "EUR"), true)
+			got, _, err := newTransactionFromCsv(tt.entry, money.New(0, "EUR"), tt.withCategory)
 			if tt.wantErr != nil && err != nil {
 				if tt.wantErr.Error() != err.Error() {
 					t.Errorf("newTransactionFromCsv() got error:\n%v\n, wanted error:\n%v\n", err, tt.wantErr)
