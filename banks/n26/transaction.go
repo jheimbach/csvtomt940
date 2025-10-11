@@ -14,6 +14,7 @@ import (
 // column mapping of n26 csv file
 const (
 	date int = iota
+	valueDate
 	payee
 	accountNumber
 	transactionType

@@ -20,7 +20,7 @@ func Test_newTransactionFromCSV(t *testing.T) {
 	}{
 		{
 			name:  "time is valid",
-			entry: []string{"2000-01-02", "", "", "", "", "", "", "", "", ""},
+			entry: []string{"2000-01-02", "", "", "", "", "", "", "", "", "", ""},
 			want: &n26Transaction{
 				date:   time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
 				saldo:  money.New(0, "EUR"),
@@ -30,13 +30,13 @@ func Test_newTransactionFromCSV(t *testing.T) {
 		},
 		{
 			name:    "time is invalid",
-			entry:   []string{"2000-0102", "", "", "", "", "", "", "", "", ""},
+			entry:   []string{"2000-0102", "", "", "", "", "", "", "", "", "", ""},
 			want:    nil,
 			wantErr: fmt.Errorf("could not parse date from 2000-0102: %w", errors.New("parsing time \"2000-0102\" as \"2006-01-02\": cannot parse \"02\" as \"-\"")),
 		},
 		{
 			name:  "both money values are valid",
-			entry: []string{"2000-01-02", "", "", "", "", "", "12.00", "", "", ""},
+			entry: []string{"2000-01-02", "", "", "", "", "", "", "12.00", "", "", ""},
 			want: &n26Transaction{
 				date:   time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
 				saldo:  money.New(1200, "EUR"),
@@ -46,13 +46,13 @@ func Test_newTransactionFromCSV(t *testing.T) {
 		},
 		{
 			name:    "amount money is invalid",
-			entry:   []string{"2000-01-02", "", "", "", "", "", "12-00", "", "", ""},
+			entry:   []string{"2000-01-02", "", "", "", "", "", "", "12-00", "", "", ""},
 			want:    nil,
 			wantErr: fmt.Errorf("could not parse amount to int: %w", errors.New("strconv.Atoi: parsing \"12-00\": invalid syntax")),
 		},
 		{
 			name:  "string fields are set",
-			entry: []string{"2000-01-02", "test", "test2", "Income", "reference", "Salary", "12.00", "", "", ""},
+			entry: []string{"2000-01-02", "", "test", "test2", "Income", "reference", "Salary", "12.00", "", "", ""},
 			want: &n26Transaction{
 				date:            time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
 				payee:           "test",
@@ -66,7 +66,7 @@ func Test_newTransactionFromCSV(t *testing.T) {
 		},
 		{
 			name:  "creditcard payment is credit",
-			entry: []string{"2000-01-02", "test", "test2", "MasterCard Payment", "reference", "Salary", "12.00", "", "", ""},
+			entry: []string{"2000-01-02", "", "test", "test2", "MasterCard Payment", "reference", "Salary", "12.00", "", "", ""},
 			want: &n26Transaction{
 				date:                  time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
 				payee:                 "test",
@@ -81,7 +81,7 @@ func Test_newTransactionFromCSV(t *testing.T) {
 		},
 		{
 			name:  "creditcard payment is debit",
-			entry: []string{"2000-01-02", "test", "test2", "MasterCard Payment", "reference", "Salary", "-12.00", "", "", ""},
+			entry: []string{"2000-01-02", "", "test", "test2", "MasterCard Payment", "reference", "Salary", "-12.00", "", "", ""},
 			want: &n26Transaction{
 				date:                  time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
 				payee:                 "test",
@@ -96,7 +96,7 @@ func Test_newTransactionFromCSV(t *testing.T) {
 		},
 		{
 			name:  "referral program is credit",
-			entry: []string{"2000-01-02", "test", "test2", "N26 Empfehlung", "reference", "Salary", "-12.00", "", "", ""},
+			entry: []string{"2000-01-02", "", "test", "test2", "N26 Empfehlung", "reference", "Salary", "-12.00", "", "", ""},
 			want: &n26Transaction{
 				date:                  time.Date(2000, 01, 02, 00, 00, 00, 00, time.UTC),
 				payee:                 "test",
@@ -138,7 +138,7 @@ func Test_newTransactionFromCSV_CalculatesSaldoCorrect(t *testing.T) {
 		{
 			name: "single transaction",
 			entry: [][]string{
-				{"2000-01-02", "test", "test2", "Income", "reference", "Salary", "12.00", "", "", ""},
+				{"2000-01-02", "", "test", "test2", "Income", "reference", "Salary", "12.00", "", "", ""},
 			},
 			startSaldo: money.New(0, "EUR"),
 			want: []*n26Transaction{
@@ -156,7 +156,7 @@ func Test_newTransactionFromCSV_CalculatesSaldoCorrect(t *testing.T) {
 		{
 			name: "with non zero start saldo",
 			entry: [][]string{
-				{"2000-01-02", "test", "test2", "Income", "reference", "Salary", "12.00", "", "", ""},
+				{"2000-01-02", "", "test", "test2", "Income", "reference", "Salary", "12.00", "", "", ""},
 			},
 			startSaldo: money.New(1200, "EUR"),
 			want: []*n26Transaction{
@@ -174,7 +174,7 @@ func Test_newTransactionFromCSV_CalculatesSaldoCorrect(t *testing.T) {
 		{
 			name: "with negative amount",
 			entry: [][]string{
-				{"2000-01-02", "test", "test2", "Income", "reference", "Salary", "-12.00", "", "", ""},
+				{"2000-01-02", "", "test", "test2", "Income", "reference", "Salary", "-12.00", "", "", ""},
 			},
 			startSaldo: money.New(2400, "EUR"),
 			want: []*n26Transaction{
@@ -192,8 +192,8 @@ func Test_newTransactionFromCSV_CalculatesSaldoCorrect(t *testing.T) {
 		{
 			name: "multiple transaction",
 			entry: [][]string{
-				{"2000-01-02", "test", "test2", "Income", "reference", "Salary", "12.00", "", "", ""},
-				{"2000-01-02", "test", "test2", "Income", "reference", "Salary", "12.00", "", "", ""},
+				{"2000-01-02", "", "test", "test2", "Income", "reference", "Salary", "12.00", "", "", ""},
+				{"2000-01-02", "", "test", "test2", "Income", "reference", "Salary", "12.00", "", "", ""},
 			},
 			startSaldo: money.New(0, "EUR"),
 			want: []*n26Transaction{
